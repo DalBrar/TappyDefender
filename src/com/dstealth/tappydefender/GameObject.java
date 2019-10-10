@@ -17,6 +17,11 @@ public abstract class GameObject {
 		this.bitmap = image;
 		this.maxX = width;
 		this.maxY = height - this.bitmap.getHeight();
+		updateHitbox();
+	}
+	
+	// Needs to be called if GameObject's starting positions (x, y) are changed
+	protected void updateHitbox() {
 		this.hitbox = new Rect(this.x, this.y, this.bitmap.getWidth(), this.bitmap.getHeight());
 	}
 	

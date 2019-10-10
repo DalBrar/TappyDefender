@@ -26,6 +26,8 @@ public class EnemyShip extends GameObject {
 		
 		this.x = width;
 		this.y = gen.nextInt(this.maxY) - (this.bitmap.getHeight() / 2);
+
+		updateHitbox();
 	}
 
 	@Override

@@ -13,7 +13,9 @@ public class PlayerShip extends GameObject {
 		this.x = 25;
 		this.y = 50;
 		this.boosting = false;
-		this.strength = 2;		
+		this.strength = 2;
+		
+		updateHitbox();
 	}
 	
 	public void update() {
