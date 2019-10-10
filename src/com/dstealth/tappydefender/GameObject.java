@@ -1,6 +1,7 @@
 package com.dstealth.tappydefender;
 
 import java.awt.image.BufferedImage;
+import java.awt.Graphics;
 
 public abstract class GameObject {
 
@@ -23,6 +24,10 @@ public abstract class GameObject {
 	// Needs to be called if GameObject's starting positions (x, y) are changed
 	protected void updateHitbox() {
 		this.hitbox = new Rect(this.x, this.y, this.bitmap.getWidth(), this.bitmap.getHeight());
+	}
+	
+	public void draw(Graphics g) {
+		g.drawImage(this.bitmap, this.x, this.y, null);
 	}
 	
 	public abstract void update(int playerSpeed);

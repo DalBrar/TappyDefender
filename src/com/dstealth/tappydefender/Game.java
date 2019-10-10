@@ -16,7 +16,6 @@ public class Game extends Canvas implements Runnable {
 
 	private static final long serialVersionUID = -6480320424545836573L;
     private static final int NUM_DUST = 20;
-    private static final int DISTANCE_MODIFIER = 10;
     private static final int ENEMY_STARTING_OFFSET = 300;
 	
 	volatile boolean playing = false;
@@ -339,22 +338,18 @@ public class Game extends Canvas implements Runnable {
 		// draw space dust
 		g.setColor(Color.white);
         for (SpaceDust dust : this.dustList) {
-        	g.fillRect(dust.x, dust.y, 1, 1);
-        	g.fillRect(dust.x+1, dust.y, 1, 1);
-        	g.fillRect(dust.x-1, dust.y, 1, 1);
-        	g.fillRect(dust.x, dust.y+1, 1, 1);
-        	g.fillRect(dust.x, dust.y-1, 1, 1);
+        	dust.draw(g);
         }
 
         // Draw the player
-        g.drawImage(this.player.bitmap, this.player.x, this.player.y, null);
+        this.player.draw(g);
         
         // Draw the enemies
         if (!this.gameEnded) {
-            g.drawImage(this.enemy1.bitmap, this.enemy1.x, this.enemy1.y, null);
-            g.drawImage(this.enemy2.bitmap, this.enemy2.x, this.enemy2.y, null);
-            g.drawImage(this.enemy3.bitmap, this.enemy3.x, this.enemy3.y, null);
-            g.drawImage(this.enemy4.bitmap, this.enemy4.x, this.enemy4.y, null);
+        	this.enemy1.draw(g);
+        	this.enemy2.draw(g);
+        	this.enemy3.draw(g);
+        	this.enemy4.draw(g);
         }
 	}
 
@@ -385,11 +380,11 @@ public class Game extends Canvas implements Runnable {
 		g.drawString("Shields: " + this.player.strength, 5, fontSize);
 		
 		g.setColor(new Color(150, 150, 150, 225));
-		drawStringCenter(g, font, "Time: " + formatTime(this.timeTaken), fontSize);
-		g.drawString("Fastest: " + formatTime(this.fastestTime), this.screenX - 130, fontSize);
+		drawStringCenter(g, font, "Time: " + FormatUtil.formatTime(this.timeTaken), fontSize);
+		g.drawString("Fastest: " + FormatUtil.formatTime(this.fastestTime), this.screenX - 130, fontSize);
 		// bottom text
-		drawStringCenter(g, font, "Distance: " + formatDistance(this.distanceRemaining), this.screenY - fontSize);
-		g.drawString("Speed: " + formatSpeed(this.player.speed), this.screenX - 130, this.screenY - fontSize);
+		drawStringCenter(g, font, "Distance: " + FormatUtil.formatDistance(this.distanceRemaining), this.screenY - fontSize);
+		g.drawString("Speed: " + FormatUtil.formatSpeed(this.player.speed), this.screenX - 130, this.screenY - fontSize);
 	}
 	
 	private void drawGameOverScreen(Graphics g) {
@@ -400,14 +395,14 @@ public class Game extends Canvas implements Runnable {
 		g.setColor(new Color(255, 255, 255, 200));
 		
 		drawStringCenter(g, fontL, "Game Over", fontSize2);
-		drawStringCenter(g, fontS, "Fastest Time: " + formatTime(this.fastestTime), 100);
-		drawStringCenter(g, fontS, "This Time: " + formatTime(this.timeTaken), 130);
+		drawStringCenter(g, fontS, "Fastest Time: " + FormatUtil.formatTime(this.fastestTime), 100);
+		drawStringCenter(g, fontS, "This Time: " + FormatUtil.formatTime(this.timeTaken), 130);
 		if (this.distanceRemaining == 0) {
     		g.setColor(new Color(0, 255, 0, 200));
 			drawStringCenter(g, fontS, "Made It Home!", 160);
 		} else {
     		g.setColor(new Color(255, 0, 0, 200));
-			drawStringCenter(g, fontS, "Distance Remaining: " + formatDistance(this.distanceRemaining), 160);
+			drawStringCenter(g, fontS, "Distance Remaining: " + FormatUtil.formatDistance(this.distanceRemaining), 160);
 		}
 		
 		g.setColor(new Color(255, 255, 255, 200));
@@ -437,28 +432,5 @@ public class Game extends Canvas implements Runnable {
     private void drawStringCenter(Graphics g, Font font, String str, int y) {
 		g.setFont(font);
 		g.drawString(str, getStringCenter(g, font, str), y);
-    }
-
-    // ==================================================
-    //		Helper Functions
-    // ==================================================
-	
-    private static String formatTime(long time) {
-        int sec = (int) (time / 1000);
-        int dec = (int) ((time % 1000)/100);
-        String output = "" + sec + "." + dec;
-        return output + "s";
-    }
-
-    private static String formatDistance(float dist) {
-    	return "" + ((int)(dist/DISTANCE_MODIFIER)) + " km";
-    }
-    
-    private static String formatSpeed(int shipspeed) {
-    	final double totalDistance = 1000.0;	// in km
-    	final double avgTimeToComplete = 186.5; // in seconds
-    	double multiplier = ((totalDistance / avgTimeToComplete) * 10);
-    	double speed = ((int)(shipspeed * multiplier))/10.0;
-    	return speed + " km/s";
     }
 }

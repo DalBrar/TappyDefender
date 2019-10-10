@@ -1,5 +1,6 @@
 package com.dstealth.tappydefender;
 
+import java.awt.Graphics;
 import java.util.Random;
 
 public class SpaceDust extends GameObject {
@@ -29,5 +30,14 @@ public class SpaceDust extends GameObject {
             this.y = generator.nextInt(this.maxY);
             this.speed = generator.nextInt(5);
         }
+    }
+    
+    @Override
+    public void draw(Graphics g) {
+    	g.drawImage(this.bitmap, this.x, this.y, null);
+    	g.drawImage(this.bitmap, this.x+1, this.y, null);
+    	g.drawImage(this.bitmap, this.x-1, this.y, null);
+    	g.drawImage(this.bitmap, this.x, this.y+1, null);
+    	g.drawImage(this.bitmap, this.x, this.y-1, null);
     }
 }
