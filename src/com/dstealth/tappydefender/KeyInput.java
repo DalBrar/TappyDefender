@@ -42,7 +42,7 @@ public class KeyInput extends KeyAdapter {
 			
 			// if SPACE key is pressed, boost ship
 			if (key == KeyEvent.VK_SPACE && !this.game.gameEnded) {
-				this.game.player.boosting = true;
+				this.game.player.setBoosting(true);
 				return;
 			}
 			
@@ -63,7 +63,7 @@ public class KeyInput extends KeyAdapter {
 		
 		// if SPACE key is released, stop ship
 		if (key == KeyEvent.VK_SPACE && !this.game.gameEnded && !this.game.isMainMenu) {
-			this.game.player.boosting = false;
+			this.game.player.setBoosting(false);
 		}
 	}
 	

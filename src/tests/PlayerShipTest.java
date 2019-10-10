@@ -16,28 +16,12 @@ public class PlayerShipTest {
 	}
 
 	@Test
-	public void testPlayerShipX() {
-		assertEquals(25, this.ps.x);
-	}
-	
-	@Test
-	public void testPlayerShipY() {
-		assertEquals(50, this.ps.y);
-	}
-	
-	@Test
 	public void testPlayerShipSpeed() {
-		assertEquals(1, this.ps.speed);
+		assertEquals(1, this.ps.getSpeed());
 	}
 	
 	@Test
 	public void testPlayerShipStrength() {
-		assertEquals(2, this.ps.strength);
+		assertEquals(2, this.ps.getStrength());
 	}
-	
-	@Test
-	public void testPlayerShipBoosting() {
-		assertFalse(this.ps.boosting);
-	}
-
 }

@@ -5,8 +5,8 @@ public class PlayerShip extends GameObject {
     private static final int MIN_SPEED = 1;
     public static final int MAX_SPEED = 7;
 
-    public int strength;
-    public boolean boosting;
+    private int strength;
+    private boolean boosting;
 
 	public PlayerShip(Game game, int width, int height) {
 		super(width, height, SpriteSheet.createImageFromResource("ship.png"));
@@ -71,4 +71,8 @@ public class PlayerShip extends GameObject {
 		} else
 			this.bitmap = SpriteSheet.createImageFromResource("ship.png");
 	}
+	
+	public int getStrength()			{ return this.strength; }
+	public void reduceStrength()		{ this.strength--; }
+	public void setBoosting(boolean val){ this.boosting = val; }
 }

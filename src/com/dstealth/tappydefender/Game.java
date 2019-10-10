@@ -190,7 +190,7 @@ public class Game extends Canvas implements Runnable {
 	
 	// thread speed control method
 	private void control() {
-        if (!this.gameEnded && this.player.strength < 0) {
+        if (!this.gameEnded && this.player.getStrength() < 0) {
             this.gameEnded = true;
             this.player.destroy();;
             this.s_destroyed.play();
@@ -225,7 +225,7 @@ public class Game extends Canvas implements Runnable {
         }
 
         if (!this.gameEnded && this.collision) {
-            this.player.strength--;
+            this.player.reduceStrength();
             this.s_bump.play();
             System.out.println("taking a hit");
         }
@@ -273,7 +273,7 @@ public class Game extends Canvas implements Runnable {
 
             // end the game
             this.gameEnded = true;
-            this.player.boosting = false;
+            this.player.setBoosting(false);;
         }
 	}
     
@@ -370,14 +370,14 @@ public class Game extends Canvas implements Runnable {
 		g.setFont(font);
 
 		// Top text
-		if (this.player.strength > 1)
+		if (this.player.getStrength() > 1)
 			g.setColor(new Color(0, 255, 0, 225));
 		else
-    	if (this.player.strength == 1)
+    	if (this.player.getStrength() == 1)
     		g.setColor(new Color(255, 255, 0, 225));
     	else
     		g.setColor(new Color(255, 0, 0, 225));
-		g.drawString("Shields: " + this.player.strength, 5, fontSize);
+		g.drawString("Shields: " + this.player.getStrength(), 5, fontSize);
 		
 		g.setColor(new Color(150, 150, 150, 225));
 		drawStringCenter(g, font, "Time: " + FormatUtil.formatTime(this.timeTaken), fontSize);

@@ -19,14 +19,8 @@ public class EnemyShipTest {
 	}
 
 	@Test
-	public void testEnemyShipX() {
-		System.out.println(this.es.x);
-		assertEquals(SCREEN_WIDTH, this.es.x);
-	}
-	
-	@Test
 	public void testEnemyShipSpeed() {
-		assertEquals(true, this.es.speed >= MIN_SPEED && this.es.speed <= MAX_SPEED);
+		assertEquals(true, this.es.getSpeed() >= MIN_SPEED && this.es.getSpeed() <= MAX_SPEED);
 	}
 
 }
