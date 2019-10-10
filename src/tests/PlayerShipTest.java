@@ -22,6 +22,6 @@ public class PlayerShipTest {
 	
 	@Test
 	public void testPlayerShipStrength() {
-		assertEquals(2, this.ps.getStrength());
+		assertEquals(2, this.ps.getShieldStrength());
 	}
 }

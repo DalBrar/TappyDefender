@@ -5,7 +5,7 @@ public class PlayerShip extends GameObject {
     private static final int MIN_SPEED = 1;
     public static final int MAX_SPEED = 7;
 
-    private int strength;
+    private int shieldStrength;
     private boolean boosting;
 
 	public PlayerShip(Game game, int width, int height) {
@@ -13,7 +13,7 @@ public class PlayerShip extends GameObject {
 		this.x = 25;
 		this.y = 50;
 		this.boosting = false;
-		this.strength = 2;
+		this.shieldStrength = 2;
 		
 		initializeHitbox();
 	}
@@ -63,16 +63,7 @@ public class PlayerShip extends GameObject {
 		this.bitmap = SpriteSheet.createImageFromResource("ship_wrecked.png");
 	}
 	
-	public void animate() {
-		if (this.boosting) {
-			// temp
-			this.bitmap = SpriteSheet.createImageFromResource("ship.png");
-			//TODO: add separate boosting effects based on speed
-		} else
-			this.bitmap = SpriteSheet.createImageFromResource("ship.png");
-	}
-	
-	public int getStrength()			{ return this.strength; }
-	public void reduceStrength()		{ this.strength--; }
+	public int getShieldStrength()			{ return this.shieldStrength; }
+	public void reduceShieldStrength()		{ this.shieldStrength--; }
 	public void setBoosting(boolean val){ this.boosting = val; }
 }
