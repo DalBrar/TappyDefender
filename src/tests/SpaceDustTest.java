@@ -19,12 +19,12 @@ public class SpaceDustTest {
 
 	@Test
 	public void testSpaceDustXLessThanScreenWidth() {
-		assertEquals(true, this.sd.x < SCREEN_WIDTH);
+		assertTrue(this.sd.x < SCREEN_WIDTH);
 	}
 	
 	@Test
 	public void testSpaceDustYLessThanScreenHeight() {
-		assertEquals(true, this.sd.y < SCREEN_HEIGHT);
+		assertTrue(this.sd.y < SCREEN_HEIGHT);
 	}
 
 }

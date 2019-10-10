@@ -37,7 +37,7 @@ public class PlayerShipTest {
 	
 	@Test
 	public void testPlayerShipBoosting() {
-		assertEquals(false, this.ps.boosting);
+		assertFalse(this.ps.boosting);
 	}
 
 }
