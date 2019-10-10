@@ -192,7 +192,7 @@ public class Game extends Canvas implements Runnable {
 	private void control() {
         if (!this.gameEnded && this.player.strength < 0) {
             this.gameEnded = true;
-            this.player.shipWrecked();
+            this.player.destroy();;
             this.s_destroyed.play();
         }
         try {
@@ -207,20 +207,20 @@ public class Game extends Canvas implements Runnable {
     // ==================================================
 	
 	private void updateCollisions() {
-        if (Rect.intersects(this.player.hitbox, this.enemy1.hitbox)) {
-        	this.enemy1.x = -500; 
+        if (Rect.intersects(this.player.getHitbox(), this.enemy1.getHitbox())) {
+        	this.enemy1.destroy();; 
         	this.collision = true;
         }
-        if (Rect.intersects(this.player.hitbox, this.enemy2.hitbox)) {
-        	this.enemy2.x = -500;
+        if (Rect.intersects(this.player.getHitbox(), this.enemy2.getHitbox())) {
+        	this.enemy2.destroy();;
         	this.collision = true;
         }
-        if (Rect.intersects(this.player.hitbox, this.enemy3.hitbox)) {
-        	this.enemy3.x = -500;
+        if (Rect.intersects(this.player.getHitbox(), this.enemy3.getHitbox())) {
+        	this.enemy3.destroy();;
         	this.collision = true;
         }
-        if (Rect.intersects(this.player.hitbox, this.enemy4.hitbox)) {
-        	this.enemy4.x = -500;
+        if (Rect.intersects(this.player.getHitbox(), this.enemy4.getHitbox())) {
+        	this.enemy4.destroy();;
         	this.collision = true;
         }
 
@@ -236,21 +236,21 @@ public class Game extends Canvas implements Runnable {
             // Update the player
             this.player.update();
             // Update the enemies
-            this.enemy1.update(this.player.speed);
-            this.enemy2.update(this.player.speed);
-            this.enemy3.update(this.player.speed);
-            this.enemy4.update(this.player.speed);
+            this.enemy1.update(this.player.getSpeed());
+            this.enemy2.update(this.player.getSpeed());
+            this.enemy3.update(this.player.getSpeed());
+            this.enemy4.update(this.player.getSpeed());
         }
         // Update space dust
         for (SpaceDust dust : this.dustList) {
-            dust.update(this.player.speed);
+            dust.update(this.player.getSpeed());
         }
 	}
 	
 	private void updateHUD() {
 		if (!this.gameEnded) {
             // subtract distance to home planet based on current speed
-            this.distanceRemaining -= this.player.speed;
+            this.distanceRemaining -= this.player.getSpeed();
             // How long has the player been flying?
             this.timeTaken += System.currentTimeMillis() - this.timeStarted;
             this.timeStarted = System.currentTimeMillis();
@@ -384,7 +384,7 @@ public class Game extends Canvas implements Runnable {
 		g.drawString("Fastest: " + FormatUtil.formatTime(this.fastestTime), this.screenX - 130, fontSize);
 		// bottom text
 		drawStringCenter(g, font, "Distance: " + FormatUtil.formatDistance(this.distanceRemaining), this.screenY - fontSize);
-		g.drawString("Speed: " + FormatUtil.formatSpeed(this.player.speed), this.screenX - 130, this.screenY - fontSize);
+		g.drawString("Speed: " + FormatUtil.formatSpeed(this.player.getSpeed()), this.screenX - 130, this.screenY - fontSize);
 	}
 	
 	private void drawGameOverScreen(Graphics g) {

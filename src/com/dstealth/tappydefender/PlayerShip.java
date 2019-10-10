@@ -15,7 +15,7 @@ public class PlayerShip extends GameObject {
 		this.boosting = false;
 		this.strength = 2;
 		
-		updateHitbox();
+		initializeHitbox();
 	}
 	
 	public void update() {
@@ -55,13 +55,11 @@ public class PlayerShip extends GameObject {
         	this.y = this.maxY;
 
         // Refresh hit box location
-        this.hitbox.left = this.x;
-        this.hitbox.top = this.y;
-        this.hitbox.right = this.x + this.bitmap.getWidth();
-        this.hitbox.bottom = this.y + this.bitmap.getHeight();
+        updateHitbox();
 	}
 	
-	public void shipWrecked() {
+	@Override
+	public void destroy() {
 		this.bitmap = SpriteSheet.createImageFromResource("ship_wrecked.png");
 	}
 	

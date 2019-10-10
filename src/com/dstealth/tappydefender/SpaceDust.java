@@ -15,7 +15,7 @@ public class SpaceDust extends GameObject {
         this.x = generator.nextInt(this.maxX);
         this.y = generator.nextInt(this.maxY);
         
-		updateHitbox();
+		initializeHitbox();
     }
 
     @Override
