@@ -1,34 +1,30 @@
 package com.dstealth.tappydefender;
-import java.awt.image.BufferedImage;
 
-public class PlayerShip {
+public class PlayerShip extends GameObject {
     private static final int GRAVITY = -4;
     private static final int MIN_SPEED = 1;
     public static final int MAX_SPEED = 7;
 
-    public BufferedImage bitmap;
-    public int x, y;
-    public Rect hitbox;
-    public int speed = 0;
     public int strength;
     public boolean boosting;
 
-    private int minY;
-    private int maxY;
-
 	public PlayerShip(Game game, int width, int height) {
+		super(width, height, SpriteSheet.createImageFromResource("ship.png"));
 		this.x = 25;
 		this.y = 50;
-		this.speed = 1;
-		this.bitmap = SpriteSheet.createImageFromResource("ship.png");
 		this.boosting = false;
 		this.strength = 2;		
-		this.minY = 0;
-		this.maxY = height - this.bitmap.getHeight();
-		this.hitbox = new Rect(this.x, this.y, this.bitmap.getWidth(), this.bitmap.getHeight());
 	}
 	
 	public void update() {
+		update(this.speed);
+	}
+	
+	/**
+	 * playerSpeed param is unused for PlayerShip.
+	 */
+	@Override
+	public void update(int playerSpeed) {
         // are we boosting?
         if (this.boosting) {
             // speed up

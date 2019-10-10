@@ -1,49 +1,34 @@
 package com.dstealth.tappydefender;
 
-import java.awt.image.BufferedImage;
 import java.util.Random;
 
-public class EnemyShip {
+public class EnemyShip extends GameObject {
     private static final int MIN_SPEED = 1;
     private static final int MAX_SPEED = 5 - MIN_SPEED + 1;
 
-    public BufferedImage bitmap;
-    public int x, y;
-    public int speed = 1;
-    public Rect hitbox;
-
-    // Detect enemies leaving the screen
-    private int minX;
-    private int maxX;
-
-    // Spawn enemies within the screen bounds
-    @SuppressWarnings("unused")
-	private int minY;
-    private int maxY;
-
 	@SuppressWarnings("unused")
 	public EnemyShip(Game game, int width, int height, int type) {
+		super(width, height, SpriteSheet.createImageFromResource("enemy.png"));
+		
 		if (type == 3)
 			this.bitmap = SpriteSheet.createImageFromResource("enemy3.png");
 		else if (type == 2)
 			this.bitmap = SpriteSheet.createImageFromResource("enemy2.png");
-		else
-			this.bitmap = SpriteSheet.createImageFromResource("enemy.png");
 		
+		// set top of screen so that half a ship can appear
 		this.minX = 0 - this.bitmap.getWidth();
-		this.minY = 0;
-		this.maxX = width;
+		// set bottom of screen so that half a ship can appear
 		this.maxY = height - (this.bitmap.getHeight() / 2);
 		
+		// Generate random speed and starting positions
 		Random gen = new Random();
 		this.speed = gen.nextInt(MAX_SPEED) + MIN_SPEED;
 		
 		this.x = width;
 		this.y = gen.nextInt(this.maxY) - (this.bitmap.getHeight() / 2);
-		
-		this.hitbox = new Rect(this.x, this.y, this.bitmap.getWidth(), this.bitmap.getHeight());
 	}
-	
+
+	@Override
     public void update(int playerSpeed) {
         // Move to the left
         this.x -= playerSpeed;

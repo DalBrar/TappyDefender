@@ -2,22 +2,12 @@ package com.dstealth.tappydefender;
 
 import java.util.Random;
 
-public class SpaceDust {
-    public int x, y;
-    
-    private int speed;
-    private int minX;
-    @SuppressWarnings("unused")
-	private int minY;
-    private int maxX;
-    private int maxY;
+public class SpaceDust extends GameObject {
 
-    public SpaceDust(int screenX, int screenY) {
-        this.minX = 0;
-        this.minY = 0;
-        this.maxX = screenX;
-        this.maxY = screenY;
+    public SpaceDust(int width, int height) {
+    	super(width, height, SpriteSheet.createBlankImage(1, 1, 255, 255, 255));
 
+    	// Generate random speed and starting location
         Random generator = new Random();
         this.speed = generator.nextInt(10);
 
@@ -25,7 +15,8 @@ public class SpaceDust {
         this.y = generator.nextInt(this.maxY);
     }
 
-    public void update (int playerSpeed) {
+    @Override
+	public void update (int playerSpeed) {
         this.x -= playerSpeed;
         this.x -= this.speed;
 
