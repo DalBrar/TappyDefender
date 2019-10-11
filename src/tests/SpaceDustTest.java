@@ -5,7 +5,7 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.dstealth.tappydefender.SpaceDust;
+import com.dstealth.tappydefender.gameobjects.SpaceDust;
 
 public class SpaceDustTest {
 	private static final int SCREEN_WIDTH = 400;

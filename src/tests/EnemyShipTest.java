@@ -5,7 +5,7 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.dstealth.tappydefender.EnemyShip;
+import com.dstealth.tappydefender.gameobjects.EnemyShip;
 
 public class EnemyShipTest {
 	private static final int SCREEN_WIDTH = 400;
@@ -15,7 +15,7 @@ public class EnemyShipTest {
 
 	@Before
 	public void setUp() throws Exception {
-		this.es = new EnemyShip(null, SCREEN_WIDTH, 350, 1);
+		this.es = new EnemyShip(SCREEN_WIDTH, 350, 1);
 	}
 
 	@Test

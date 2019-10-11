@@ -10,7 +10,14 @@ import java.awt.Image;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Random;
+
+import com.dstealth.tappydefender.gameobjects.Earth;
+import com.dstealth.tappydefender.gameobjects.EnemyShip;
+import com.dstealth.tappydefender.gameobjects.PlayerShip;
+import com.dstealth.tappydefender.gameobjects.SpaceDust;
+import com.dstealth.tappydefender.helpers.FormatUtil;
+import com.dstealth.tappydefender.helpers.SoundFile;
+import com.dstealth.tappydefender.helpers.SpriteSheet;
 
 public class Game extends Canvas implements Runnable {
 
@@ -23,12 +30,15 @@ public class Game extends Canvas implements Runnable {
     volatile boolean isPaused = false;
     public boolean isMainMenu = true;
     public boolean gameEnded;
+    private boolean isVictory;
     Thread gameThread = null;
 	
     private int screenX;
     private int screenY;
 
-    // Sound stuff
+    // Sounds
+    private SoundFile s_menu;
+    private SoundFile s_gameplay;
     private SoundFile s_start;
     private SoundFile s_win;
     private SoundFile s_bump;
@@ -43,6 +53,7 @@ public class Game extends Canvas implements Runnable {
     private EnemyShip enemy4;
     // Make some random space dust
     private ArrayList<SpaceDust> dustList;
+    private Earth earth;
 
     // HUD variables
     private float distanceRemaining;
@@ -64,6 +75,8 @@ public class Game extends Canvas implements Runnable {
 		this.addKeyListener(new KeyInput(this));
 		
         // Initialize sounds
+		this.s_menu		 = SoundFile.create("mainmenu.wav");
+		this.s_gameplay	 = SoundFile.create("gameplay.wav");
         this.s_bump		 = SoundFile.create("bump.wav");
         this.s_destroyed = SoundFile.create("destroyed.wav");
         this.s_start 	 = SoundFile.create("start.wav");
@@ -71,27 +84,84 @@ public class Game extends Canvas implements Runnable {
         this.s_pause	 = SoundFile.create("pause.wav");
 	}
 	
+	// this is the game loop using Variable Timestep algorithm
+	@Override
+	public void run() {
+		long lastLoopTime = System.nanoTime();
+		final int TARGET_FPS = 60;
+		final long OPTIMAL_TIME = 1000000000 / TARGET_FPS;
+		long lastFpsTime = 0;
+		long fps = 0;
+		
+		// keep looping round till the game ends using Exclusive-Or (^)
+		while (this.isMainMenu ^ this.playing)
+		{
+			// work out how long its been since the last update, this
+			// will be used to calculate how far the entities should
+			// move this loop
+			long now = System.nanoTime();
+			long updateLength = now - lastLoopTime;
+			lastLoopTime = now;
+			double delta = updateLength / ((double)OPTIMAL_TIME);
+			
+			// update the frame counter
+			lastFpsTime += updateLength;
+			fps++;
+			
+			// update our FPS counter if a second has passed since
+			// we last recorded
+			if (lastFpsTime >= 1000000000)
+			{
+				System.out.println("(FPS: "+fps+")");
+				lastFpsTime = 0;
+				fps = 0;
+			}
+			
+			// update & draw
+			if (this.isMainMenu)
+				drawMainMenu();
+			else if (this.playing) {
+	        	update();
+	            draw();
+	            control();
+			}
+			
+			// we want each frame to take 10 milliseconds, to do this
+			// we've recorded when we started the frame. We add 10 milliseconds
+			// to this and then factor in the current time to give 
+			// us our final value to wait for
+			// remember this is in ms, whereas our lastLoopTime etc. vars are in ns.
+			try{
+				long remainingTime = (lastLoopTime-System.nanoTime() + OPTIMAL_TIME) / 1000000;
+				Thread.sleep(remainingTime);
+			} catch (IllegalArgumentException | InterruptedException e) {}
+		}
+	}
+	
 	public void showMenu() {
         // Get main menu drawing
+		this.isMainMenu = true;
+		this.s_menu.playLoop();
         this.gameThread = new Thread(this);
         this.gameThread.start();
 	}
 	
-	public void start() {
+	public void startGame() {
 		if (MainWindow.doDebug)
 			System.out.println(this.getWidth() + " - " + this.getHeight());
 		
 		this.isMainMenu = false;
 		this.isPaused = false;
 		
+		this.s_gameplay.playLoop();
+		
         // Initialize our player ship
-        this.player = new PlayerShip(this, this.getWidth(), this.getHeight());
-        this.enemy1 = new EnemyShip(this, this.getWidth()+ENEMY_STARTING_OFFSET, this.getHeight(), 1);
-        this.enemy2 = new EnemyShip(this, this.getWidth()+ENEMY_STARTING_OFFSET, this.getHeight(), 2);
-        this.enemy3 = new EnemyShip(this, this.getWidth()+ENEMY_STARTING_OFFSET, this.getHeight(), 3);
-        Random r = new Random();
-        int shipType = r.nextInt(3)+1;
-        this.enemy4 = new EnemyShip(this, this.getWidth()+ENEMY_STARTING_OFFSET, this.getHeight(), shipType);
+        this.player = new PlayerShip(this.getWidth(), this.getHeight());
+        this.enemy1 = new EnemyShip(this.getWidth()+ENEMY_STARTING_OFFSET, this.getHeight(), 1);
+        this.enemy2 = new EnemyShip(this.getWidth()+ENEMY_STARTING_OFFSET, this.getHeight(), 2);
+        this.enemy3 = new EnemyShip(this.getWidth()+ENEMY_STARTING_OFFSET, this.getHeight(), 3);
+        this.enemy4 = new EnemyShip(this.getWidth()+ENEMY_STARTING_OFFSET, this.getHeight(), 0);
+        this.earth  = new Earth(this.getWidth(), this.getHeight());
 
         // Initialize space dust
 		this.dustList = new ArrayList<SpaceDust>();
@@ -106,47 +176,37 @@ public class Game extends Canvas implements Runnable {
         this.timeStarted = System.currentTimeMillis();
 
         this.gameEnded = false;
+        this.isVictory = false;
         this.s_start.play();
         
-		this.resume();
-	}
-	
-	public void stop() {
-		this.gameEnded = true;
-		pause();
-	}
-	
-	// this is the game loop
-	@Override
-	public void run() {
-		// run main menu screen
-		while (this.isMainMenu) {
-			drawMainMenu();
-		}
-		// run game screens
-        while(!this.isMainMenu && this.playing) {
-        	update();
-            draw();
-            control();
-        }
+		this.startThread();
 	}
 
+    // Make a new thread and start it
+    private void startThread() {
+        this.playing = true;
+        this.gameThread = new Thread(this);
+        this.gameThread.start();
+    }
+
     // Clean up our thread if the game is interrupted or the player quits
-    private void pause() {
+	public void stop() {
+		this.isMainMenu = false;
+		this.gameEnded = true;
         this.playing = false;
+        // stop sound loops
+        this.s_menu.stopLoop();
+        this.s_gameplay.stopLoop();
+        try {
+        	this.player.setBoosting(false);
+        } catch (NullPointerException e) {}
+        // stop thread
         try {
             this.gameThread.join();
         } catch (InterruptedException e) {
 
         }
-    }
-
-    // Make a new thread and start it
-    private void resume() {
-        this.playing = true;
-        this.gameThread = new Thread(this);
-        this.gameThread.start();
-    }
+	}
     
     // Toggle Pause/Resume
     public void togglePause() {
@@ -162,7 +222,7 @@ public class Game extends Canvas implements Runnable {
 	// tick method
 	private void update() {
 		// update Game if game not paused
-		if (!this.isPaused) {
+		if (!this.isMainMenu && this.playing && !this.isPaused) {
 			updateCollisions();
 			updateGameObjects();
 			updateHUD();
@@ -195,11 +255,11 @@ public class Game extends Canvas implements Runnable {
             this.player.destroy();;
             this.s_destroyed.play();
         }
+        /*
         try {
             Thread.sleep(17);
-        } catch (InterruptedException e) {
-
-        }
+        } catch (InterruptedException e) {}
+        */
 	}
 
     // ==================================================
@@ -207,19 +267,19 @@ public class Game extends Canvas implements Runnable {
     // ==================================================
 	
 	private void updateCollisions() {
-        if (Rect.intersects(this.player.getHitbox(), this.enemy1.getHitbox())) {
+        if (this.player.collidesWith(this.enemy1)) {
         	this.enemy1.destroy();; 
         	this.collision = true;
         }
-        if (Rect.intersects(this.player.getHitbox(), this.enemy2.getHitbox())) {
+        if (this.player.collidesWith(this.enemy2)) {
         	this.enemy2.destroy();;
         	this.collision = true;
         }
-        if (Rect.intersects(this.player.getHitbox(), this.enemy3.getHitbox())) {
+        if (this.player.collidesWith(this.enemy3)) {
         	this.enemy3.destroy();;
         	this.collision = true;
         }
-        if (Rect.intersects(this.player.getHitbox(), this.enemy4.getHitbox())) {
+        if (this.player.collidesWith(this.enemy4)) {
         	this.enemy4.destroy();;
         	this.collision = true;
         }
@@ -227,7 +287,6 @@ public class Game extends Canvas implements Runnable {
         if (!this.gameEnded && this.collision) {
             this.player.reduceShieldStrength();
             this.s_bump.play();
-            System.out.println("taking a hit");
         }
 	}
 	
@@ -241,6 +300,9 @@ public class Game extends Canvas implements Runnable {
             this.enemy3.update(this.player.getSpeed());
             this.enemy4.update(this.player.getSpeed());
         }
+        else if (this.isVictory)
+        	this.earth.update(this.player.getSpeed());
+        
         // Update space dust
         for (SpaceDust dust : this.dustList) {
             dust.update(this.player.getSpeed());
@@ -273,6 +335,7 @@ public class Game extends Canvas implements Runnable {
 
             // end the game
             this.gameEnded = true;
+            this.isVictory = true;
             this.player.setBoosting(false);;
         }
 	}
@@ -351,6 +414,8 @@ public class Game extends Canvas implements Runnable {
         	this.enemy3.draw(g);
         	this.enemy4.draw(g);
         }
+        else if (this.isVictory)
+        	this.earth.draw(g);
 	}
 
     // Draw appropriate HUD
@@ -407,6 +472,7 @@ public class Game extends Canvas implements Runnable {
 		
 		g.setColor(new Color(255, 255, 255, 200));
 		drawStringCenter(g, fontS, "Press ENTER to replay!", 250);
+		drawStringCenter(g, fontS, "Press ESC to return to Menu", 280);
 	}
 	
 	private void drawPauseHUD(Graphics g) {
@@ -421,7 +487,7 @@ public class Game extends Canvas implements Runnable {
 		if (this.flashTime <= 5)
 			drawStringCenter(g, fontL, "Paused", fontSizeL+50);
 		drawStringCenter(g, fontS, "Press ENTER to resume", 180);
-		drawStringCenter(g, fontS, "Press ESC to restart", 240);
+		drawStringCenter(g, fontS, "Press ESC to return to Menu", 240);
 	}
     
     private int getStringCenter(Graphics g, Font font, String str) {

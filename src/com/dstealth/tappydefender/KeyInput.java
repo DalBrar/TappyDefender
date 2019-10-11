@@ -6,6 +6,7 @@ import java.awt.event.KeyEvent;
 public class KeyInput extends KeyAdapter {
 	
 	private Game game;
+	private int key;
 	
 	public KeyInput(Game g) {
 		this.game = g;
@@ -14,43 +15,27 @@ public class KeyInput extends KeyAdapter {
 	@Override
 	public void keyPressed(KeyEvent e) {
 		super.keyPressed(e);
-		int key = e.getKeyCode();
+		this.key = e.getKeyCode();
 		if (MainWindow.doDebug)
-			System.out.println("Key pressed: " + key);
+			System.out.println("Key pressed: " + this.key);
 		
 		if (this.game.isMainMenu) {
-			// if ENTER key, start game
-			if (key == KeyEvent.VK_ENTER) {
-				this.game.isMainMenu = false;
-				restartGame();
-			}
+			// main menu
+			doMenuCommands();
 		}
 		else {
-			// if ENTER key:
-			if (key == KeyEvent.VK_ENTER) {
-				// if in game, pause
-				if (!this.game.gameEnded) {
-					this.game.togglePause();
-					return;
-				}
-				// else restart game
-				else {
-					restartGame();
-					return;
-				}
+			// if game running
+			if (!this.game.gameEnded) {
+				if (!this.game.isPaused)
+					// not paused
+					doGameRunningCommands();
+				else
+					// paused
+					doPauseMenuCommands();
 			}
-			
-			// if SPACE key is pressed, boost ship
-			if (key == KeyEvent.VK_SPACE && !this.game.gameEnded) {
-				this.game.player.setBoosting(true);
-				return;
-			}
-			
-			// if ESC key pressed and game is paused, restart game
-			if (key == KeyEvent.VK_ESCAPE && this.game.isPaused) {
-				restartGame();
-				return;
-			}
+			else
+				// game ended
+				doGameEndedCommands();
 		}
 	}
 	
@@ -69,6 +54,59 @@ public class KeyInput extends KeyAdapter {
 	
 	private void restartGame() {
 		this.game.stop();
-		this.game.start();
+		this.game.startGame();
+	}
+	
+	private void quitGame() {
+		this.game.stop();
+		this.game.showMenu();;
+	}
+	
+	// ==================================================
+	//		Menu Inputs
+	// ==================================================
+	
+	private void doMenuCommands() {
+		restartGameOn(KeyEvent.VK_ENTER);
+	}
+	
+	private void doGameRunningCommands() {
+		togglePauseOn(KeyEvent.VK_ENTER);
+		boostShipOn(KeyEvent.VK_SPACE);
+	}
+	
+	private void doPauseMenuCommands() {
+		togglePauseOn(KeyEvent.VK_ENTER);
+		quitGameOn(KeyEvent.VK_ESCAPE);
+	}
+	
+	private void doGameEndedCommands() {
+		restartGameOn(KeyEvent.VK_ENTER);
+		quitGameOn(KeyEvent.VK_ESCAPE);
+	}
+	
+	// ==================================================
+	//		Actions
+	// ==================================================
+	
+	private void restartGameOn(int ikey) {
+		if (this.key == ikey) {
+			restartGame();
+		}
+	}
+	
+	private void quitGameOn(int ikey) {
+		if (this.key == ikey)
+			quitGame();
+	}
+	
+	private void togglePauseOn(int ikey) {
+		if (this.key == ikey)
+			this.game.togglePause();
+	}
+	
+	private void boostShipOn(int ikey) {
+		if (this.key == ikey)
+			this.game.player.setBoosting(true);
 	}
 }

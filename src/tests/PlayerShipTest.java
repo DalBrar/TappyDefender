@@ -5,14 +5,14 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.dstealth.tappydefender.PlayerShip;
+import com.dstealth.tappydefender.gameobjects.PlayerShip;
 
 public class PlayerShipTest {
 	PlayerShip ps;
 
 	@Before
 	public void setUp() throws Exception {
-		this.ps = new PlayerShip(null, 0, 0);
+		this.ps = new PlayerShip(0, 0);
 	}
 
 	@Test
