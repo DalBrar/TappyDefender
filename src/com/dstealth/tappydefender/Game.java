@@ -45,25 +45,37 @@ public class Game extends Canvas implements Runnable {
 	private static final int f_size_HUD			= 15;
 	private static final int f_size_CONTROLS	= 14;
 	private static final int f_size_DEBUG		= 12;
-	private static final Font f_title		= new Font(font, Font.BOLD, f_size_TITLE);
-	private static final Font f_subtitle	= new Font(font, Font.BOLD, f_size_SUBTITLE);
-	private static final Font f_menu_text	= new Font(font, Font.BOLD, f_size_MENU_TEXT);
-	private static final Font f_menu_subtext= new Font(font, Font.BOLD, f_size_MENU_SUBTEXT);
-	private static final Font f_hud			= new Font(font, Font.BOLD, f_size_HUD);
-	private static final Font f_controls	= new Font(font, Font.BOLD, f_size_CONTROLS);
-	private static final Font f_debug		= new Font(font, Font.PLAIN, f_size_DEBUG);
+	private static final Font f_title			= new Font(font, Font.BOLD, f_size_TITLE);
+	private static final Font f_subtitle		= new Font(font, Font.BOLD, f_size_SUBTITLE);
+	private static final Font f_menu_text		= new Font(font, Font.BOLD, f_size_MENU_TEXT);
+	private static final Font f_menu_subtext	= new Font(font, Font.BOLD, f_size_MENU_SUBTEXT);
+	private static final Font f_hud				= new Font(font, Font.BOLD, f_size_HUD);
+	private static final Font f_controls		= new Font(font, Font.BOLD, f_size_CONTROLS);
+	private static final Font f_debug			= new Font(font, Font.PLAIN, f_size_DEBUG);
 
     // Sounds
-    private SoundFile s_menu;
-    private SoundFile s_gameplay;
-    private SoundFile s_start;
-    private SoundFile s_win;
-    private SoundFile s_bump;
-    private SoundFile s_destroyed;
-    private SoundFile s_pause;
+	public static final SoundFile s_booster		= SoundFile.create("booster.wav");
+    private static final SoundFile s_menu		= SoundFile.create("mainmenu.wav");
+    private static final SoundFile s_gameplay	= SoundFile.create("gameplay.wav");
+    private static final SoundFile s_start		= SoundFile.create("start.wav");
+    private static final SoundFile s_win		= SoundFile.create("win.wav");
+    private static final SoundFile s_bump		= SoundFile.create("bump.wav");
+    private static final SoundFile s_destroyed	= SoundFile.create("destroyed.wav");
+    private static final SoundFile s_pause		= SoundFile.create("pause.wav");
     
-    // Menu images
-    BufferedImage bg;
+    // Graphic Images
+    public static final BufferedImage g_player	= SpriteSheet.createImageFromResource("ship.png");
+    public static final BufferedImage g_playerM	= SpriteSheet.createImageFromResource("bitmask_ship.png");
+    public static final BufferedImage g_playerW	= SpriteSheet.createImageFromResource("ship_wrecked.png");
+    public static final BufferedImage g_enemy1	= SpriteSheet.createImageFromResource("enemy1.png");
+    public static final BufferedImage g_enemy2	= SpriteSheet.createImageFromResource("enemy2.png");
+    public static final BufferedImage g_enemy3	= SpriteSheet.createImageFromResource("enemy3.png");
+    public static final BufferedImage g_enemy1M	= SpriteSheet.createImageFromResource("bitmask_enemy1.png");
+    public static final BufferedImage g_enemy2M	= SpriteSheet.createImageFromResource("bitmask_enemy2.png");
+    public static final BufferedImage g_enemy3M	= SpriteSheet.createImageFromResource("bitmask_enemy3.png");
+    public static final BufferedImage g_dust	= SpriteSheet.createBlankImage(1, 1, 255, 255, 255);
+    public static final BufferedImage g_earth	= SpriteSheet.createImageFromResource("earth.png");
+    private static final BufferedImage g_title	= SpriteSheet.createImageFromResource("background.jpg");
     Image bgImg;
     
     // Game Objects
@@ -98,18 +110,7 @@ public class Game extends Canvas implements Runnable {
 		// Initialize Listeners
 		this.addKeyListener(new KeyInput(this));
 		
-        // Initialize sounds
-		this.s_menu		 = SoundFile.create("mainmenu.wav");
-		this.s_gameplay	 = SoundFile.create("gameplay.wav");
-        this.s_bump		 = SoundFile.create("bump.wav");
-        this.s_destroyed = SoundFile.create("destroyed.wav");
-        this.s_start 	 = SoundFile.create("start.wav");
-        this.s_win		 = SoundFile.create("win.wav");
-        this.s_pause	 = SoundFile.create("pause.wav");
-        
-        // Initialize menu image
-		this.bg = SpriteSheet.createImageFromResource("background.jpg");
-		this.bgImg = this.bg.getScaledInstance(this.screenX, this.screenY, Image.SCALE_DEFAULT);
+		this.bgImg = g_title.getScaledInstance(this.screenX, this.screenY, Image.SCALE_DEFAULT);
 	}
 	
 	// this is the game loop using Variable Timestep algorithm
@@ -123,7 +124,7 @@ public class Game extends Canvas implements Runnable {
 	public void startMenu() {
         // Get main menu drawing
 		this.isMainMenu = true;
-		this.s_menu.playLoop();
+		Game.s_menu.playLoop();
 		this.startThread();
 	}
 	
@@ -134,7 +135,7 @@ public class Game extends Canvas implements Runnable {
 		this.isMainMenu = false;
 		this.isPaused = false;
 		
-		this.s_gameplay.playLoop();
+		Game.s_gameplay.playLoop();
 		
         // Initialize our player ship
         this.player = new PlayerShip(this.getWidth(), this.getHeight());
@@ -159,7 +160,7 @@ public class Game extends Canvas implements Runnable {
         this.gameEnded = false;
         this.isVictory = false;
         this.playing = true;
-        this.s_start.play();
+        Game.s_start.play();
         
 		this.startThread();
 	}
@@ -176,8 +177,8 @@ public class Game extends Canvas implements Runnable {
 		this.gameEnded = true;
         this.playing = false;
         // stop sound loops
-        this.s_menu.stopLoop();
-        this.s_gameplay.stopLoop();
+        Game.s_menu.stopLoop();
+        Game.s_gameplay.stopLoop();
         try {
         	this.player.setBoosting(false);
         } catch (NullPointerException e) {}
@@ -191,7 +192,7 @@ public class Game extends Canvas implements Runnable {
     
     // Toggle Pause/Resume
     public void togglePause() {
-    	this.s_pause.play();
+    	Game.s_pause.play();
     	this.isPaused = (this.isPaused) ? false : true;
         this.timeStarted = System.currentTimeMillis();
     }
@@ -439,7 +440,7 @@ public class Game extends Canvas implements Runnable {
 
         if (!this.gameEnded && this.collision) {
             this.player.reduceShieldStrength();
-            this.s_bump.play();
+            Game.s_bump.play();
             this.collision = false;
         }
 	}
@@ -478,12 +479,12 @@ public class Game extends Canvas implements Runnable {
         if (!this.gameEnded && this.player.getShieldStrength() < 0) {
             this.gameEnded = true;
             this.player.destroy();;
-            this.s_destroyed.play();
+            Game.s_destroyed.play();
             this.player.setBoosting(false);
         }
         // Check for Victory condition
         else if (this.distanceRemaining < 0) {
-            this.s_win.play();
+            Game.s_win.play();
             // check for new fastest time
             if (this.timeTaken < this.fastestTime) {
                 this.fastestTime = this.timeTaken;

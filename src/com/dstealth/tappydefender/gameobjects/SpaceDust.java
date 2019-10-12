@@ -3,12 +3,12 @@ package com.dstealth.tappydefender.gameobjects;
 import java.awt.Graphics;
 import java.util.Random;
 
-import com.dstealth.tappydefender.helpers.SpriteSheet;
+import com.dstealth.tappydefender.Game;
 
 public class SpaceDust extends GameObject {
 
     public SpaceDust(int width, int height) {
-    	super(width, height, SpriteSheet.createBlankImage(1, 1, 255, 255, 255));
+    	super(width, height, Game.g_dust);
 
     	// Generate random speed and starting location
         Random generator = new Random();

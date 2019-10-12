@@ -2,12 +2,12 @@ package com.dstealth.tappydefender.gameobjects;
 
 import java.util.Random;
 
-import com.dstealth.tappydefender.helpers.SpriteSheet;
+import com.dstealth.tappydefender.Game;
 
 public class EnemyShip extends GameObject {
 
 	public EnemyShip(int width, int height, int type) {
-		super(width, height, SpriteSheet.createImageFromResource("enemy1.png"));
+		super(width, height, Game.g_enemy1);
 		
 		Random gen = new Random();
 		if (type == 0)
@@ -49,16 +49,16 @@ public class EnemyShip extends GameObject {
 		Random gen = new Random();
 		int baseSpeed = gen.nextInt(2);
 		if (type == 3) {
-			this.setBitmap(SpriteSheet.createImageFromResource("enemy3.png"));
-			this.setBitMask(SpriteSheet.createImageFromResource("bitmask_enemy3.png"));
+			this.setBitmap(Game.g_enemy3);
+			this.setBitMask(Game.g_enemy3M);
 			this.speed = baseSpeed + 4;	// 4 - 5
 		} else if (type == 2) {
-			this.setBitmap(SpriteSheet.createImageFromResource("enemy2.png"));
-			this.setBitMask(SpriteSheet.createImageFromResource("bitmask_enemy2.png"));
+			this.setBitmap(Game.g_enemy2);
+			this.setBitMask(Game.g_enemy2M);
 			this.speed = baseSpeed + 2;	// 2 - 3
 		} else {
-			this.setBitmap(SpriteSheet.createImageFromResource("enemy1.png"));
-			this.setBitMask(SpriteSheet.createImageFromResource("bitmask_enemy1.png"));
+			this.setBitmap(Game.g_enemy1);
+			this.setBitMask(Game.g_enemy1M);
 			this.speed = baseSpeed;		// 0 - 1
 		}
 	}

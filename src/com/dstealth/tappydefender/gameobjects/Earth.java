@@ -1,11 +1,11 @@
 package com.dstealth.tappydefender.gameobjects;
 
-import com.dstealth.tappydefender.helpers.SpriteSheet;
+import com.dstealth.tappydefender.Game;
 
 public class Earth extends GameObject {
 
 	public Earth(int width, int height) {
-		super(width, height, SpriteSheet.createImageFromResource("earth.png"));
+		super(width, height, Game.g_earth);
 		this.x = width;
 		this.minX = width - (this.getBitmap().getWidth()/3);
 		this.speed = 1;
