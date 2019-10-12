@@ -282,6 +282,7 @@ public class Game extends Canvas implements Runnable {
     }
     
     /*
+     * Game Loop Algorithms
     @SuppressWarnings("unused")
 	private void gameloopVaraibleTimestep() {
     	long lastLoopTime = System.nanoTime();
@@ -426,7 +427,7 @@ public class Game extends Canvas implements Runnable {
 	private void renderFPS(Graphics g) {
 		g.setColor(new Color(255, 255, 255, 100));
 		g.setFont(f_debug);
-		g.drawString("TPS:" + this.tps + " FPS:" + this.fps, 1, this.getHeight()-2);
+		g.drawString("TPS:" + this.tps + " FPS:" + this.fps, 1, this.getHeight()-f_size_DEBUG-2);
 	}
 
     // ==================================================
