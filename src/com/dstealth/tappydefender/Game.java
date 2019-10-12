@@ -61,6 +61,7 @@ public class Game extends Canvas implements Runnable {
 
     // HUD variables
 	int fps = 60;
+	int tps = this.fps;
     private float distanceRemaining;
     private long timeTaken;
     private long timeStarted;
@@ -182,7 +183,8 @@ public class Game extends Canvas implements Runnable {
     //		Game Loop Algorithms
     // ==================================================
     
-    private void gameloopVaraibleTimestep() {
+    @SuppressWarnings("unused")
+	private void gameloopVaraibleTimestep() {
     	long lastLoopTime = System.nanoTime();
     	final int ONE_SECOND = 1000000000;
 		final int TARGET_FPS = 60;
@@ -205,25 +207,20 @@ public class Game extends Canvas implements Runnable {
 			// update the frame counter
 			lastFpsTime += updateLength;
 			frameCount++;
-			updateFlashTimer();
 			
 			// update our FPS counter if a second has passed since
 			// we last recorded
 			if (lastFpsTime >= ONE_SECOND)
 			{
 				this.fps = frameCount;
+				this.tps = this.fps;
 				lastFpsTime = 0;
 				frameCount = 0;
 			}
 			
 			// update & draw
-			if (this.isMainMenu)
-				drawMainMenu();
-			else if (this.playing) {
-	        	update();
-	            render();
-			}
-			renderFPS(this.fps);
+	        update();
+	        render();
 			
 			// we want each frame to take 10 milliseconds, to do this
 			// we've recorded when we started the frame. We add 10 milliseconds
@@ -243,7 +240,8 @@ public class Game extends Canvas implements Runnable {
 			} catch (IllegalArgumentException | InterruptedException e) {}
 		}
     }
-    
+
+    @SuppressWarnings("unused")
     private void gameloopFixedTimestep() {
     	//This value would probably be stored elsewhere.
     	final double GAME_HERTZ = 30.0;
@@ -271,16 +269,15 @@ public class Game extends Canvas implements Runnable {
     		double now = System.nanoTime();
     		int updateCount = 0;
     		frameCount++;
-			updateFlashTimer();
 
 			//Do as many game updates as we need to, potentially playing catchup.
 			while( now - lastUpdateTime > TIME_BETWEEN_UPDATES && updateCount < MAX_UPDATES_BEFORE_RENDER )
 			{
-				if (this.playing)
-					update();
+				update();
 				lastUpdateTime += TIME_BETWEEN_UPDATES;
 				updateCount++;
 			}
+			this.tps = updateCount;
 
 			//If for some reason an update takes forever, we don't want to do an insane number of catchups.
 			//If you were doing some sort of game that needed to keep EXACT time, you would get rid of this.
@@ -291,13 +288,7 @@ public class Game extends Canvas implements Runnable {
 
 			//Render. To do so, we need to calculate interpolation for a smooth render.
 			//float interpolation = Math.min(1.0f, (float) ((now - lastUpdateTime) / TIME_BETWEEN_UPDATES) );
-
-			if (this.isMainMenu)
-				drawMainMenu();
-			else if (this.playing) {
-	            render();
-			}
-			renderFPS(this.fps);
+	        render();
 			
 			lastRenderTime = now;
 
@@ -325,7 +316,8 @@ public class Game extends Canvas implements Runnable {
 			}
     	}
     }
-    
+
+    @SuppressWarnings("unused")
     private void gameloopMinecraft() {
     	long lastTime = System.nanoTime();
     	double amountOfTicks = 60.0;
@@ -340,7 +332,6 @@ public class Game extends Canvas implements Runnable {
     		delta += (now - lastTime)/ OPTIMAL_TIME;
     		lastTime = now;
     		frameCount++;
-			updateFlashTimer();
     		
 			// play catch up if lagging behind
 			while (delta >= 1) {
@@ -348,12 +339,7 @@ public class Game extends Canvas implements Runnable {
 				delta--;
 			}
 			// render/draw graphics
-			if (this.isMainMenu)
-				drawMainMenu();
-			else if (this.playing) {
-	            render();
-			}
-			renderFPS(this.fps);
+			render();
 			
 			if (System.currentTimeMillis() - timer > 1000) {
 				timer += 1000;
@@ -370,6 +356,7 @@ public class Game extends Canvas implements Runnable {
 
 	// tick method
 	private void update() {
+		updateFlashTimer();
 		// update Game if game not paused
 		if (!this.isMainMenu && this.playing && !this.isPaused) {
 			updateCollisions();
@@ -389,35 +376,28 @@ public class Game extends Canvas implements Runnable {
 		
 		Graphics g = bs.getDrawGraphics();
 
-		drawBackground(g);
-		drawGameObjects(g);
-        drawHUDs(g);
+		if (this.isMainMenu)
+			drawMainMenu(g);
+		else if (this.playing) {
+			drawBackground(g);
+			drawGameObjects(g);
+	        drawHUDs(g);
+		}
+		
+		renderFPS(g);
 		
 		g.dispose();
 		bs.show();
 	}
 	
 	// render and draw FPS
-	private void renderFPS(int fps) {
-		if (MainWindow.doDebug)
-			System.out.println("FPS: " + fps);
-		
-		BufferStrategy bs = this.getBufferStrategy();
-		if (bs == null) {
-			this.createBufferStrategy(3);
-			return;
-		}
-		
-		Graphics g = bs.getDrawGraphics();
+	private void renderFPS(Graphics g) {
 		g.setColor(new Color(255, 255, 255, 100));
 		
     	final int fontSizeT = 14;
 		Font fontT = new Font("consolas", 1, fontSizeT);
 		g.setFont(fontT);
-		g.drawString("FPS: " + fps, 1, this.getHeight()-2);
-		
-		g.dispose();
-		bs.show();
+		g.drawString("TPS: " + this.tps + " FPS: " + this.fps, 1, this.getHeight()-2);
 	}
 
     // ==================================================
@@ -519,14 +499,7 @@ public class Game extends Canvas implements Runnable {
     //		Draw Functions
     // ==================================================
 	
-	private void drawMainMenu() {
-		BufferStrategy bs = this.getBufferStrategy();
-		if (bs == null) {
-			this.createBufferStrategy(3);
-			return;
-		}
-		
-		Graphics g = bs.getDrawGraphics();
+	private void drawMainMenu(Graphics g) {
 		g.setColor(Color.black);
 		g.fillRect(0, 0, this.getWidth(), this.getHeight());
 		
@@ -545,9 +518,6 @@ public class Game extends Canvas implements Runnable {
 		drawStringCenter(g, fontS, "CONTROLS:", 370);
 		drawStringCenter(g, fontT, "SPACE = Fly/Boost", 390);
 		drawStringCenter(g, fontT, "ENTER = Pause    ", 405);
-		
-		g.dispose();
-		bs.show();
 	}
 	
 	private void drawBackground(Graphics g) {
