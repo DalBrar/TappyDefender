@@ -3,11 +3,13 @@ package com.dstealth.tappydefender.gameobjects;
 import java.util.Random;
 
 import com.dstealth.tappydefender.Game;
+import com.dstealth.tappydefender.ResourceManager;
 
 public class EnemyShip extends GameObject {
+	private static final ResourceManager rm = Game.getResourceManager();
 
 	public EnemyShip(int width, int height, int type) {
-		super(width, height, Game.g_enemy1);
+		super(width, height, rm.g_enemy1);
 		
 		Random gen = new Random();
 		if (type == 0)
@@ -49,16 +51,16 @@ public class EnemyShip extends GameObject {
 		Random gen = new Random();
 		int baseSpeed = gen.nextInt(2);
 		if (type == 3) {
-			this.setBitmap(Game.g_enemy3);
-			this.setBitMask(Game.g_enemy3M);
+			this.setBitmap(rm.g_enemy3);
+			this.setBitMask(rm.g_enemy3M);
 			this.speed = baseSpeed + 4;	// 4 - 5
 		} else if (type == 2) {
-			this.setBitmap(Game.g_enemy2);
-			this.setBitMask(Game.g_enemy2M);
+			this.setBitmap(rm.g_enemy2);
+			this.setBitMask(rm.g_enemy2M);
 			this.speed = baseSpeed + 2;	// 2 - 3
 		} else {
-			this.setBitmap(Game.g_enemy1);
-			this.setBitMask(Game.g_enemy1M);
+			this.setBitmap(rm.g_enemy1);
+			this.setBitMask(rm.g_enemy1M);
 			this.speed = baseSpeed;		// 0 - 1
 		}
 	}

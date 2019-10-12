@@ -1,25 +1,27 @@
 package com.dstealth.tappydefender.gameobjects;
 
 import com.dstealth.tappydefender.Game;
+import com.dstealth.tappydefender.ResourceManager;
 import com.dstealth.tappydefender.helpers.SoundFile;
 
 public class PlayerShip extends GameObject {
     private static final int GRAVITY = -4;
     private static final int MIN_SPEED = 1;
     private static final int MAX_SPEED = 7;
-    
+
+	private static final ResourceManager rm = Game.getResourceManager();
     private int shieldStrength;
     private boolean boosting;
     private SoundFile booster;
 
 	public PlayerShip(int width, int height) {
-		super(width, height, Game.g_player);
-		this.setBitMask(Game.g_playerM);
+		super(width, height, rm.g_player);
+		this.setBitMask(rm.g_playerM);
 		this.x = 25;
 		this.y = 50;
 		this.boosting = false;
 		this.shieldStrength = 2;
-		this.booster = Game.s_booster;
+		this.booster = rm.s_booster;
 		
 		initializeHitbox();
 	}
@@ -66,7 +68,7 @@ public class PlayerShip extends GameObject {
 	
 	@Override
 	public void destroy() {
-		this.setBitmap(Game.g_playerW);
+		this.setBitmap(rm.g_playerW);
 		this.booster.stopLoop();
 	}
 	

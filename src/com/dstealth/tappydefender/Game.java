@@ -8,7 +8,6 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferStrategy;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 import com.dstealth.tappydefender.gameobjects.Earth;
@@ -16,8 +15,6 @@ import com.dstealth.tappydefender.gameobjects.EnemyShip;
 import com.dstealth.tappydefender.gameobjects.PlayerShip;
 import com.dstealth.tappydefender.gameobjects.SpaceDust;
 import com.dstealth.tappydefender.helpers.FormatUtil;
-import com.dstealth.tappydefender.helpers.SoundFile;
-import com.dstealth.tappydefender.helpers.SpriteSheet;
 
 public class Game extends Canvas implements Runnable {
 
@@ -45,46 +42,8 @@ public class Game extends Canvas implements Runnable {
     private int screenX;
     private int screenY;
     
-    // Font settings
-	private static final String font			= "consolas";
-	private static final int f_size_TITLE		= 60;
-	private static final int f_size_SUBTITLE	= 40;
-	private static final int f_size_MENU_TEXT	= 25;
-	private static final int f_size_MENU_SUBTEXT= 18;
-	private static final int f_size_HUD			= 15;
-	private static final int f_size_CONTROLS	= 14;
-	private static final int f_size_DEBUG		= 12;
-	private static final Font f_title			= new Font(font, Font.BOLD, f_size_TITLE);
-	private static final Font f_subtitle		= new Font(font, Font.BOLD, f_size_SUBTITLE);
-	private static final Font f_menu_text		= new Font(font, Font.BOLD, f_size_MENU_TEXT);
-	private static final Font f_menu_subtext	= new Font(font, Font.BOLD, f_size_MENU_SUBTEXT);
-	private static final Font f_hud				= new Font(font, Font.BOLD, f_size_HUD);
-	private static final Font f_controls		= new Font(font, Font.BOLD, f_size_CONTROLS);
-	private static final Font f_debug			= new Font(font, Font.PLAIN, f_size_DEBUG);
-
-    // Sounds
-	public static final SoundFile s_booster		= SoundFile.create("booster.wav");
-    private static final SoundFile s_menu		= SoundFile.create("mainmenu.wav");
-    private static final SoundFile s_gameplay	= SoundFile.create("gameplay.wav");
-    private static final SoundFile s_start		= SoundFile.create("start.wav");
-    private static final SoundFile s_win		= SoundFile.create("win.wav");
-    private static final SoundFile s_bump		= SoundFile.create("bump.wav");
-    private static final SoundFile s_destroyed	= SoundFile.create("destroyed.wav");
-    private static final SoundFile s_pause		= SoundFile.create("pause.wav");
-    
-    // Graphic Images
-    public static final BufferedImage g_player	= SpriteSheet.createImageFromResource("ship.png");
-    public static final BufferedImage g_playerM	= SpriteSheet.createImageFromResource("bitmask_ship.png");
-    public static final BufferedImage g_playerW	= SpriteSheet.createImageFromResource("ship_wrecked.png");
-    public static final BufferedImage g_enemy1	= SpriteSheet.createImageFromResource("enemy1.png");
-    public static final BufferedImage g_enemy2	= SpriteSheet.createImageFromResource("enemy2.png");
-    public static final BufferedImage g_enemy3	= SpriteSheet.createImageFromResource("enemy3.png");
-    public static final BufferedImage g_enemy1M	= SpriteSheet.createImageFromResource("bitmask_enemy1.png");
-    public static final BufferedImage g_enemy2M	= SpriteSheet.createImageFromResource("bitmask_enemy2.png");
-    public static final BufferedImage g_enemy3M	= SpriteSheet.createImageFromResource("bitmask_enemy3.png");
-    public static final BufferedImage g_dust	= SpriteSheet.createBlankImage(1, 1, 255, 255, 255);
-    public static final BufferedImage g_earth	= SpriteSheet.createImageFromResource("earth.png");
-    private static final BufferedImage g_title	= SpriteSheet.createImageFromResource("background.jpg");
+    // Resources
+    private static final ResourceManager rm = new ResourceManager();
     Image bgImg;
     
     // Game Objects
@@ -117,7 +76,7 @@ public class Game extends Canvas implements Runnable {
 		// Initialize Listeners
 		this.addKeyListener(new KeyInput(this));
 		
-		this.bgImg = g_title.getScaledInstance(this.screenX, this.screenY, Image.SCALE_DEFAULT);
+		this.bgImg = rm.g_title.getScaledInstance(this.screenX, this.screenY, Image.SCALE_DEFAULT);
 	}
 	
 	// this is the game loop using Variable Timestep algorithm
@@ -131,7 +90,7 @@ public class Game extends Canvas implements Runnable {
 	public void startMenu() {
         // Get main menu drawing
 		this.isMainMenu = true;
-		Game.s_menu.playLoop();
+		rm.s_menu.playLoop();
 		this.startThread();
 	}
 	
@@ -142,7 +101,7 @@ public class Game extends Canvas implements Runnable {
 		this.isMainMenu = false;
 		this.isPaused = false;
 		
-		Game.s_gameplay.playLoop();
+		rm.s_gameplay.playLoop();
 		
         // Initialize our player ship
         this.player = new PlayerShip(this.getWidth(), this.getHeight());
@@ -167,7 +126,7 @@ public class Game extends Canvas implements Runnable {
         this.gameEnded = false;
         this.isVictory = false;
         this.playing = true;
-        Game.s_start.play();
+        rm.s_start.play();
         
 		this.startThread();
 	}
@@ -184,8 +143,8 @@ public class Game extends Canvas implements Runnable {
 		this.gameEnded = true;
         this.playing = false;
         // stop sound loops
-        Game.s_menu.stopLoop();
-        Game.s_gameplay.stopLoop();
+        rm.s_menu.stopLoop();
+        rm.s_gameplay.stopLoop();
         try {
         	this.player.setBoosting(false);
         } catch (NullPointerException e) {}
@@ -199,7 +158,7 @@ public class Game extends Canvas implements Runnable {
     
     // Toggle Pause/Resume
     public void togglePause() {
-    	Game.s_pause.play();
+    	rm.s_pause.play();
     	this.isPaused = (this.isPaused) ? false : true;
         this.timeStarted = System.currentTimeMillis();
     }
@@ -426,8 +385,8 @@ public class Game extends Canvas implements Runnable {
 	// render and draw FPS
 	private void renderFPS(Graphics g) {
 		g.setColor(new Color(255, 255, 255, 100));
-		g.setFont(f_debug);
-		g.drawString("TPS:" + this.tps + " FPS:" + this.fps, 1, this.getHeight()-f_size_DEBUG-2);
+		g.setFont(rm.f_debug);
+		g.drawString("TPS:" + this.tps + " FPS:" + this.fps, 1, this.getHeight()-rm.f_size_DEBUG-2);
 	}
 
     // ==================================================
@@ -454,7 +413,7 @@ public class Game extends Canvas implements Runnable {
 
         if (!this.gameEnded && this.collision) {
             this.player.reduceShieldStrength();
-            Game.s_bump.play();
+            rm.s_bump.play();
             this.collision = false;
         }
 	}
@@ -493,12 +452,12 @@ public class Game extends Canvas implements Runnable {
         if (!this.gameEnded && this.player.getShieldStrength() < 0) {
             this.gameEnded = true;
             this.player.destroy();;
-            Game.s_destroyed.play();
+            rm.s_destroyed.play();
             this.player.setBoosting(false);
         }
         // Check for Victory condition
         else if (this.distanceRemaining < 0) {
-            Game.s_win.play();
+            rm.s_win.play();
             // check for new fastest time
             if (this.timeTaken < this.fastestTime) {
                 this.fastestTime = this.timeTaken;
@@ -537,10 +496,10 @@ public class Game extends Canvas implements Runnable {
 		g.setColor(new Color(255, 255, 255, 200));
 		
 		if (this.flashTime)
-			drawStringCenter(g, f_subtitle, "Press ENTER to Start", 180);
-		drawStringCenter(g, f_menu_subtext, "CONTROLS:", 370);
-		drawStringCenter(g, f_controls, "SPACE = Fly/Boost", 390);
-		drawStringCenter(g, f_controls, "ENTER = Pause    ", 405);
+			drawStringCenter(g, rm.f_subtitle, "Press ENTER to Start", 180);
+		drawStringCenter(g, rm.f_menu_subtext, "CONTROLS:", 370);
+		drawStringCenter(g, rm.f_controls, "SPACE = Fly/Boost", 390);
+		drawStringCenter(g, rm.f_controls, "ENTER = Pause    ", 405);
 	}
 	
 	private void drawBackground(Graphics g) {
@@ -576,7 +535,6 @@ public class Game extends Canvas implements Runnable {
         	this.earth.draw(g);
 	}
 
-    // Draw appropriate HUD
 	private void drawHUDs(Graphics g) {
         if (!this.gameEnded) {
         	drawGameplayHUD(g);
@@ -588,7 +546,7 @@ public class Game extends Canvas implements Runnable {
 	}
 	
 	private void drawGameplayHUD(Graphics g) {
-		g.setFont(f_hud);
+		g.setFont(rm.f_hud);
 
 		// Top text
 		if (this.player.getShieldStrength() > 1)
@@ -598,42 +556,42 @@ public class Game extends Canvas implements Runnable {
     		g.setColor(new Color(255, 255, 0, 225));
     	else
     		g.setColor(new Color(255, 0, 0, 225));
-		g.drawString("Shields: " + this.player.getShieldStrength(), 5, f_size_HUD);
+		g.drawString("Shields: " + this.player.getShieldStrength(), 5, rm.f_size_HUD);
 		
 		g.setColor(new Color(150, 150, 150, 225));
-		drawStringCenter(g, f_hud, "Time: " + FormatUtil.formatTime(this.timeTaken), f_size_HUD);
-		g.drawString("Fastest: " + FormatUtil.formatTime(this.fastestTime), this.screenX - 130, f_size_HUD);
+		drawStringCenter(g, rm.f_hud, "Time: " + FormatUtil.formatTime(this.timeTaken), rm.f_size_HUD);
+		g.drawString("Fastest: " + FormatUtil.formatTime(this.fastestTime), this.screenX - 130, rm.f_size_HUD);
 		// bottom text
-		drawStringCenter(g, f_hud, "Distance: " + FormatUtil.formatDistance(this.distanceRemaining), this.screenY - f_size_HUD);
-		g.drawString("Speed: " + FormatUtil.formatSpeed(this.player.getSpeed()), this.screenX - 130, this.screenY - f_size_HUD);
+		drawStringCenter(g, rm.f_hud, "Distance: " + FormatUtil.formatDistance(this.distanceRemaining), this.screenY - rm.f_size_HUD);
+		g.drawString("Speed: " + FormatUtil.formatSpeed(this.player.getSpeed()), this.screenX - 130, this.screenY - rm.f_size_HUD);
 	}
 	
 	private void drawGameOverScreen(Graphics g) {
 		g.setColor(new Color(255, 255, 255, 200));
 		
-		drawStringCenter(g, f_title, "Game Over", f_size_TITLE);
-		drawStringCenter(g, f_menu_text, "Fastest Time: " + FormatUtil.formatTime(this.fastestTime), 100);
-		drawStringCenter(g, f_menu_text, "This Time: " + FormatUtil.formatTime(this.timeTaken), 130);
+		drawStringCenter(g, rm.f_title, "Game Over", rm.f_size_TITLE);
+		drawStringCenter(g, rm.f_menu_text, "Fastest Time: " + FormatUtil.formatTime(this.fastestTime), 100);
+		drawStringCenter(g, rm.f_menu_text, "This Time: " + FormatUtil.formatTime(this.timeTaken), 130);
 		if (this.distanceRemaining == 0) {
     		g.setColor(new Color(0, 255, 0, 200));
-			drawStringCenter(g, f_menu_text, "Made It Home!", 160);
+			drawStringCenter(g, rm.f_menu_text, "Made It Home!", 160);
 		} else {
     		g.setColor(new Color(255, 0, 0, 200));
-			drawStringCenter(g, f_menu_text, "Distance Remaining: " + FormatUtil.formatDistance(this.distanceRemaining), 160);
+			drawStringCenter(g, rm.f_menu_text, "Distance Remaining: " + FormatUtil.formatDistance(this.distanceRemaining), 160);
 		}
 		
 		g.setColor(new Color(255, 255, 255, 200));
-		drawStringCenter(g, f_menu_text, "Press ENTER to replay!", 250);
-		drawStringCenter(g, f_menu_text, "Press ESC to return to Menu", 280);
+		drawStringCenter(g, rm.f_menu_text, "Press ENTER to replay!", 250);
+		drawStringCenter(g, rm.f_menu_text, "Press ESC to return to Menu", 280);
 	}
 	
 	private void drawPauseHUD(Graphics g) {
 		g.setColor(new Color(255, 255, 255, 200));
 		
 		if (this.flashTime)
-			drawStringCenter(g, f_title, "Paused", f_size_TITLE+50);
-		drawStringCenter(g, f_menu_text, "Press ENTER to resume", 180);
-		drawStringCenter(g, f_menu_text, "Press ESC to return to Menu", 240);
+			drawStringCenter(g, rm.f_title, "Paused", rm.f_size_TITLE+50);
+		drawStringCenter(g, rm.f_menu_text, "Press ENTER to resume", 180);
+		drawStringCenter(g, rm.f_menu_text, "Press ESC to return to Menu", 240);
 	}
      
     private void drawStringCenter(Graphics g, Font f, String str, int y) {
@@ -645,4 +603,11 @@ public class Game extends Canvas implements Runnable {
     	FontMetrics metrics = g.getFontMetrics(f);
     	return (this.screenX - metrics.stringWidth(str)) / 2;
     }
+    
+    
+    // ==================================================
+    //		Getters & Setters
+    // ==================================================
+    
+    public static ResourceManager getResourceManager() { return rm; }
 }

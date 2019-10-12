@@ -4,11 +4,13 @@ import java.awt.Graphics;
 import java.util.Random;
 
 import com.dstealth.tappydefender.Game;
+import com.dstealth.tappydefender.ResourceManager;
 
 public class SpaceDust extends GameObject {
+	private static final ResourceManager rm = Game.getResourceManager();
 
     public SpaceDust(int width, int height) {
-    	super(width, height, Game.g_dust);
+    	super(width, height, rm.g_dust);
 
     	// Generate random speed and starting location
         Random generator = new Random();
