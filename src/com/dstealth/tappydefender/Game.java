@@ -45,6 +45,10 @@ public class Game extends Canvas implements Runnable {
     private SoundFile s_destroyed;
     private SoundFile s_pause;
     
+    // Menu images
+    BufferedImage bg;
+    Image bgImg;
+    
     // Game Objects
     public PlayerShip player;
     private EnemyShip enemy1;
@@ -56,11 +60,13 @@ public class Game extends Canvas implements Runnable {
     private Earth earth;
 
     // HUD variables
+	int fps = 60;
     private float distanceRemaining;
     private long timeTaken;
     private long timeStarted;
     private long fastestTime = 999000l;
-    private int flashTime = 0;
+    private int flashCounter = 0;
+    private boolean flashTime = false;
 
 	public Game(int width, int height) {
 		Dimension dim = new Dimension(width, height);
@@ -82,68 +88,25 @@ public class Game extends Canvas implements Runnable {
         this.s_start 	 = SoundFile.create("start.wav");
         this.s_win		 = SoundFile.create("win.wav");
         this.s_pause	 = SoundFile.create("pause.wav");
+        
+        // Initialize menu image
+		this.bg = SpriteSheet.createImageFromResource("background.jpg");
+		this.bgImg = this.bg.getScaledInstance(this.screenX, this.screenY, Image.SCALE_DEFAULT);
 	}
 	
 	// this is the game loop using Variable Timestep algorithm
 	@Override
 	public void run() {
-		long lastLoopTime = System.nanoTime();
-		final int TARGET_FPS = 60;
-		final long OPTIMAL_TIME = 1000000000 / TARGET_FPS;
-		long lastFpsTime = 0;
-		long fps = 0;
-		
-		// keep looping round till the game ends using Exclusive-Or (^)
-		while (this.isMainMenu ^ this.playing)
-		{
-			// work out how long its been since the last update, this
-			// will be used to calculate how far the entities should
-			// move this loop
-			long now = System.nanoTime();
-			long updateLength = now - lastLoopTime;
-			lastLoopTime = now;
-			double delta = updateLength / ((double)OPTIMAL_TIME);
-			
-			// update the frame counter
-			lastFpsTime += updateLength;
-			fps++;
-			
-			// update our FPS counter if a second has passed since
-			// we last recorded
-			if (lastFpsTime >= 1000000000)
-			{
-				System.out.println("(FPS: "+fps+")");
-				lastFpsTime = 0;
-				fps = 0;
-			}
-			
-			// update & draw
-			if (this.isMainMenu)
-				drawMainMenu();
-			else if (this.playing) {
-	        	update();
-	            draw();
-	            control();
-			}
-			
-			// we want each frame to take 10 milliseconds, to do this
-			// we've recorded when we started the frame. We add 10 milliseconds
-			// to this and then factor in the current time to give 
-			// us our final value to wait for
-			// remember this is in ms, whereas our lastLoopTime etc. vars are in ns.
-			try{
-				long remainingTime = (lastLoopTime-System.nanoTime() + OPTIMAL_TIME) / 1000000;
-				Thread.sleep(remainingTime);
-			} catch (IllegalArgumentException | InterruptedException e) {}
-		}
+		gameloopVaraibleTimestep();
+		//gameloopFixedTimestep();
+		//gameloopMinecraft();
 	}
 	
-	public void showMenu() {
+	public void startMenu() {
         // Get main menu drawing
 		this.isMainMenu = true;
 		this.s_menu.playLoop();
-        this.gameThread = new Thread(this);
-        this.gameThread.start();
+		this.startThread();
 	}
 	
 	public void startGame() {
@@ -177,6 +140,7 @@ public class Game extends Canvas implements Runnable {
 
         this.gameEnded = false;
         this.isVictory = false;
+        this.playing = true;
         this.s_start.play();
         
 		this.startThread();
@@ -184,7 +148,6 @@ public class Game extends Canvas implements Runnable {
 
     // Make a new thread and start it
     private void startThread() {
-        this.playing = true;
         this.gameThread = new Thread(this);
         this.gameThread.start();
     }
@@ -216,6 +179,80 @@ public class Game extends Canvas implements Runnable {
     }
     
     // ==================================================
+    //		Game Loop Algorithms
+    // ==================================================
+    
+    private void gameloopVaraibleTimestep() {
+    	long lastLoopTime = System.nanoTime();
+    	final int ONE_SECOND = 1000000000;
+		final int TARGET_FPS = 60;
+		final long OPTIMAL_TIME = 1000000000 / TARGET_FPS;
+		long lastFpsTime = 0;
+		int fpsCounter = 0;
+		
+		// keep looping round till the game ends using Exclusive-Or (^)
+		while (this.isMainMenu ^ this.playing)
+		{
+			// work out how long its been since the last update, this
+			// will be used to calculate how far the entities should
+			// move this loop
+			long now = System.nanoTime();
+			long updateLength = now - lastLoopTime;
+			lastLoopTime = now;
+			// Use deltaTime for in-game logic
+			double deltaTime = updateLength / ((double)OPTIMAL_TIME);
+			
+			// update the frame counter
+			lastFpsTime += updateLength;
+			fpsCounter++;
+			updateFlashTimer();
+			
+			// update our FPS counter if a second has passed since
+			// we last recorded
+			if (lastFpsTime >= ONE_SECOND)
+			{
+				fps = fpsCounter;
+				lastFpsTime = 0;
+				fpsCounter = 0;
+			}
+			
+			// update & draw
+			if (this.isMainMenu)
+				drawMainMenu();
+			else if (this.playing) {
+	        	update();
+	            render();
+			}
+			renderFPS(fps);
+			
+			// we want each frame to take 10 milliseconds, to do this
+			// we've recorded when we started the frame. We add 10 milliseconds
+			// to this and then factor in the current time to give 
+			// us our final value to wait for
+			// remember this is in ms, whereas our lastLoopTime etc. vars are in ns.
+			try{
+				final int ms = 1000000;
+				long curr = System.nanoTime();
+				long remainingTime = (now-curr + OPTIMAL_TIME) / ms;
+				if (MainWindow.doDebug) {
+					System.out.println("" + (now/ms) + " - " + (curr/ms) + " = " + ((now - curr)/ms) + " + " + (OPTIMAL_TIME/ms));
+					System.out.println("Sleeping for " + remainingTime + " ms");
+				}
+				if (remainingTime > 0)
+					Thread.sleep(remainingTime);
+			} catch (IllegalArgumentException | InterruptedException e) {}
+		}
+    }
+    
+    private void gameloopFixedTimestep() {
+    	
+    }
+    
+    private void gameloopMinecraft() {
+    	
+    }
+    
+    // ==================================================
     //		Game Loop Functions
     // ==================================================
 
@@ -226,12 +263,12 @@ public class Game extends Canvas implements Runnable {
 			updateCollisions();
 			updateGameObjects();
 			updateHUD();
-	        updateVictoryCondition();
+	        updateWinLoseCondition();
 		}
 	}
 	
 	// render method
-	private void draw() {
+	private void render() {
 		BufferStrategy bs = this.getBufferStrategy();
 		if (bs == null) {
 			this.createBufferStrategy(3);
@@ -248,18 +285,27 @@ public class Game extends Canvas implements Runnable {
 		bs.show();
 	}
 	
-	// thread speed control method
-	private void control() {
-        if (!this.gameEnded && this.player.getShieldStrength() < 0) {
-            this.gameEnded = true;
-            this.player.destroy();;
-            this.s_destroyed.play();
-        }
-        /*
-        try {
-            Thread.sleep(17);
-        } catch (InterruptedException e) {}
-        */
+	// render and draw FPS
+	private void renderFPS(int fps) {
+		if (MainWindow.doDebug)
+			System.out.println("FPS: " + fps);
+		
+		BufferStrategy bs = this.getBufferStrategy();
+		if (bs == null) {
+			this.createBufferStrategy(3);
+			return;
+		}
+		
+		Graphics g = bs.getDrawGraphics();
+		g.setColor(new Color(255, 255, 255, 100));
+		
+    	final int fontSizeT = 14;
+		Font fontT = new Font("consolas", 1, fontSizeT);
+		g.setFont(fontT);
+		g.drawString("FPS: " + fps, 1, this.getHeight()-2);
+		
+		g.dispose();
+		bs.show();
 	}
 
     // ==================================================
@@ -287,6 +333,7 @@ public class Game extends Canvas implements Runnable {
         if (!this.gameEnded && this.collision) {
             this.player.reduceShieldStrength();
             this.s_bump.play();
+            this.collision = false;
         }
 	}
 	
@@ -319,8 +366,16 @@ public class Game extends Canvas implements Runnable {
         }
 	}
 	
-	private void updateVictoryCondition() {
-		if (this.distanceRemaining < 0) {
+	private void updateWinLoseCondition() {
+		// Check for Lose condition
+        if (!this.gameEnded && this.player.getShieldStrength() < 0) {
+            this.gameEnded = true;
+            this.player.destroy();;
+            this.s_destroyed.play();
+            this.player.setBoosting(false);
+        }
+        // Check for Victory condition
+        else if (this.distanceRemaining < 0) {
             this.s_win.play();
             // check for new fastest time
             if (this.timeTaken < this.fastestTime) {
@@ -336,23 +391,23 @@ public class Game extends Canvas implements Runnable {
             // end the game
             this.gameEnded = true;
             this.isVictory = true;
-            this.player.setBoosting(false);;
+            this.player.setBoosting(false);
         }
 	}
-    
-    private void updateFlashTime() {
-    	this.flashTime++;
-    	if (this.flashTime >= 10)
-    		this.flashTime = 0;
-    }
+	
+	private void updateFlashTimer() {
+		this.flashCounter++;
+		if (this.flashCounter >= 22) {
+			this.flashCounter = 0;
+			this.flashTime = (this.flashTime) ? false : true;
+		}
+	}
 
     // ==================================================
     //		Draw Functions
     // ==================================================
 	
 	private void drawMainMenu() {
-		updateFlashTime();
-		
 		BufferStrategy bs = this.getBufferStrategy();
 		if (bs == null) {
 			this.createBufferStrategy(3);
@@ -363,9 +418,7 @@ public class Game extends Canvas implements Runnable {
 		g.setColor(Color.black);
 		g.fillRect(0, 0, this.getWidth(), this.getHeight());
 		
-		BufferedImage bg = SpriteSheet.createImageFromResource("background.jpg");
-		Image img = bg.getScaledInstance(this.screenX, this.screenY, Image.SCALE_DEFAULT);
-		g.drawImage(img, 0, 0, null);
+		g.drawImage(this.bgImg, 0, 0, null);
 
     	final int fontSizeL = 40;
     	final int fontSizeS = 18;
@@ -375,7 +428,7 @@ public class Game extends Canvas implements Runnable {
 		Font fontT = new Font("consolas", 1, fontSizeT);
 		g.setColor(new Color(255, 255, 255, 200));
 		
-		if (this.flashTime <= 5)
+		if (this.flashTime)
 			drawStringCenter(g, fontL, "Press ENTER to Start", 180);
 		drawStringCenter(g, fontS, "CONTROLS:", 370);
 		drawStringCenter(g, fontT, "SPACE = Fly/Boost", 390);
@@ -476,15 +529,13 @@ public class Game extends Canvas implements Runnable {
 	}
 	
 	private void drawPauseHUD(Graphics g) {
-		updateFlashTime();
-    	
     	final int fontSizeS = 25;
     	final int fontSizeL = 60;
 		Font fontS = new Font("consolas", 1, fontSizeS);
 		Font fontL = new Font("consolas", 1, fontSizeL);
 		g.setColor(new Color(255, 255, 255, 200));
 		
-		if (this.flashTime <= 5)
+		if (this.flashTime)
 			drawStringCenter(g, fontL, "Paused", fontSizeL+50);
 		drawStringCenter(g, fontS, "Press ENTER to resume", 180);
 		drawStringCenter(g, fontS, "Press ESC to return to Menu", 240);

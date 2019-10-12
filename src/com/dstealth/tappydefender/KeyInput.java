@@ -59,7 +59,7 @@ public class KeyInput extends KeyAdapter {
 	
 	private void quitGame() {
 		this.game.stop();
-		this.game.showMenu();;
+		this.game.startMenu();;
 	}
 	
 	// ==================================================

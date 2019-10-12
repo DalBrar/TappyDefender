@@ -42,6 +42,6 @@ public class MainWindow extends Canvas {
 		Game game = new Game(width - OFFSET_BORDER, height - OFFSET_TITLEBAR);
 		frame.add(game);
 		game.requestFocus();
-		game.showMenu();
+		game.startMenu();
 	}
 }
