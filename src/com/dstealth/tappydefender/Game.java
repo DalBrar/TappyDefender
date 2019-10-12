@@ -24,6 +24,15 @@ public class Game extends Canvas implements Runnable {
 	private static final long serialVersionUID = -6480320424545836573L;
     private static final int NUM_DUST = 20;
     private static final int ENEMY_STARTING_OFFSET = 300;
+    
+    // Game Loop constants & variables
+	private static final int ONE_SECOND = 1000000000; // in nanoseconds
+	private static final double TARGET_TPS = 60;
+	private static final double TARGET_FPS = 60;
+	private static final double OPTIMAL_UPDATE_TIME = ONE_SECOND / TARGET_TPS;
+	private static final double OPTIMAL_RENDER_TIME = ONE_SECOND / TARGET_FPS;
+	int fps = (int)TARGET_TPS;
+	int tps = (int)TARGET_FPS;
 	
 	volatile boolean playing = false;
     volatile boolean collision = false;
@@ -37,7 +46,7 @@ public class Game extends Canvas implements Runnable {
     private int screenY;
     
     // Font settings
-	private static final String font = "consolas";
+	private static final String font			= "consolas";
 	private static final int f_size_TITLE		= 60;
 	private static final int f_size_SUBTITLE	= 40;
 	private static final int f_size_MENU_TEXT	= 25;
@@ -89,8 +98,6 @@ public class Game extends Canvas implements Runnable {
     private Earth earth;
 
     // HUD variables
-	int fps = 60;
-	int tps = this.fps;
     private float distanceRemaining;
     private long timeTaken;
     private long timeStarted;
@@ -117,8 +124,8 @@ public class Game extends Canvas implements Runnable {
 	@Override
 	public void run() {
 		//gameloopVaraibleTimestep();
-		//gameloopFixedTimestep();
-		gameloopMinecraft();
+		gameloopFixedTimestep();
+		//gameloopMinecraft();
 	}
 	
 	public void startMenu() {
@@ -200,11 +207,84 @@ public class Game extends Canvas implements Runnable {
     // ==================================================
     //		Game Loop Algorithms
     // ==================================================
+
+    private void gameloopFixedTimestep() {
+    	//At the very most we will update the game this many times before a new render.
+    	//If you're worried about visual hitches more than perfect timing, set this to 1.
+    	final int MAX_UPDATES_BEFORE_RENDER = 5;
+    	
+    	//We will need the last update time.
+    	double lastUpdateTime = System.nanoTime();
+    	//Store the last time we rendered.
+    	double lastRenderTime = System.nanoTime();
+    	
+    	// for FPS
+    	long lastLoopTime = System.nanoTime();
+    	long lastFpsTime = 0;
+		int frameCount = 0;
+		int tickCount = 0;
+
+
+		// keep looping round till the game ends using Exclusive-Or (^)
+    	while (this.isMainMenu ^ this.playing)
+    	{
+    		long now = System.nanoTime();
+    		int updateCount = 0;
+    		frameCount++;
+
+			//Do as many game updates as we need to, potentially playing catchup.
+			while( now - lastUpdateTime > OPTIMAL_UPDATE_TIME && updateCount < MAX_UPDATES_BEFORE_RENDER )
+			{
+				update();
+				lastUpdateTime += OPTIMAL_UPDATE_TIME;
+				updateCount++;
+				tickCount++;
+			}
+
+			//If for some reason an update takes forever, we don't want to do an insane number of catchups.
+			//If you were doing some sort of game that needed to keep EXACT time, you would get rid of this.
+			if ( now - lastUpdateTime > OPTIMAL_UPDATE_TIME)
+			{
+				lastUpdateTime = now - OPTIMAL_UPDATE_TIME;
+			}
+
+			//Render. To do so, we need to calculate interpolation for a smooth render.
+			//float interpolation = Math.min(1.0f, (float) ((now - lastUpdateTime) / TIME_BETWEEN_UPDATES) );
+	        render();
+			
+			lastRenderTime = now;
+
+			//Update the frames we got.
+			long updateLength = now - lastLoopTime;
+			lastLoopTime = now;
+			lastFpsTime += updateLength;
+			if (lastFpsTime >= ONE_SECOND) {
+				this.fps = frameCount;
+				this.tps = tickCount;
+				lastFpsTime = 0;
+				frameCount = 0;
+				tickCount = 0;
+			}
+
+			//Yield until it has been at least the target time between renders. This saves the CPU from hogging.
+			while ( now - lastRenderTime < OPTIMAL_RENDER_TIME && now - lastUpdateTime < OPTIMAL_UPDATE_TIME)
+			{
+				Thread.yield();
+
+				//This stops the app from consuming all your CPU. It makes this slightly less accurate, but is worth it.
+				//You can remove this line and it will still work (better), your CPU just climbs on certain OSes.
+				//FYI on some OS's this can cause pretty bad stuttering.
+				try {Thread.sleep(1);} catch(Exception e) {} 
+
+				now = System.nanoTime();
+			}
+    	}
+    }
     
+    /*
     @SuppressWarnings("unused")
 	private void gameloopVaraibleTimestep() {
     	long lastLoopTime = System.nanoTime();
-    	final int ONE_SECOND = 1000000000;
 		final int TARGET_FPS = 60;
 		final long OPTIMAL_TIME = 1000000000 / TARGET_FPS;
 		long lastFpsTime = 0;
@@ -260,89 +340,16 @@ public class Game extends Canvas implements Runnable {
     }
 
     @SuppressWarnings("unused")
-    private void gameloopFixedTimestep() {
-    	//This value would probably be stored elsewhere.
-    	final double GAME_HERTZ = 30.0;
-    	//Calculate how many ns each frame should take for our target game hertz.
-    	final double TIME_BETWEEN_UPDATES = 1000000000 / GAME_HERTZ;
-    	//At the very most we will update the game this many times before a new render.
-    	//If you're worried about visual hitches more than perfect timing, set this to 1.
-    	final int MAX_UPDATES_BEFORE_RENDER = 5;
-    	//We will need the last update time.
-    	double lastUpdateTime = System.nanoTime();
-    	//Store the last time we rendered.
-    	double lastRenderTime = System.nanoTime();
-		int frameCount = 0;
-
-    	//If we are able to get as high as this FPS, don't render again.
-    	final double TARGET_FPS = 60;
-    	final double TARGET_TIME_BETWEEN_RENDERS = 1000000000 / TARGET_FPS;
-
-    	//Simple way of finding FPS.
-    	int lastSecondTime = (int) (lastUpdateTime / 1000000000);
-
-		// keep looping round till the game ends using Exclusive-Or (^)
-    	while (this.isMainMenu ^ this.playing)
-    	{
-    		double now = System.nanoTime();
-    		int updateCount = 0;
-    		frameCount++;
-
-			//Do as many game updates as we need to, potentially playing catchup.
-			while( now - lastUpdateTime > TIME_BETWEEN_UPDATES && updateCount < MAX_UPDATES_BEFORE_RENDER )
-			{
-				update();
-				lastUpdateTime += TIME_BETWEEN_UPDATES;
-				updateCount++;
-			}
-			this.tps = updateCount;
-
-			//If for some reason an update takes forever, we don't want to do an insane number of catchups.
-			//If you were doing some sort of game that needed to keep EXACT time, you would get rid of this.
-			if ( now - lastUpdateTime > TIME_BETWEEN_UPDATES)
-			{
-				lastUpdateTime = now - TIME_BETWEEN_UPDATES;
-			}
-
-			//Render. To do so, we need to calculate interpolation for a smooth render.
-			//float interpolation = Math.min(1.0f, (float) ((now - lastUpdateTime) / TIME_BETWEEN_UPDATES) );
-	        render();
-			
-			lastRenderTime = now;
-
-			//Update the frames we got.
-			int thisSecond = (int) (lastUpdateTime / 1000000000);
-			if (thisSecond > lastSecondTime)
-			{
-				System.out.println("NEW SECOND " + thisSecond + " " + frameCount);
-				this.fps = frameCount;
-				frameCount = 0;
-				lastSecondTime = thisSecond;
-			}
-
-			//Yield until it has been at least the target time between renders. This saves the CPU from hogging.
-			while ( now - lastRenderTime < TARGET_TIME_BETWEEN_RENDERS && now - lastUpdateTime < TIME_BETWEEN_UPDATES)
-			{
-				Thread.yield();
-
-				//This stops the app from consuming all your CPU. It makes this slightly less accurate, but is worth it.
-				//You can remove this line and it will still work (better), your CPU just climbs on certain OSes.
-				//FYI on some OS's this can cause pretty bad stuttering.
-				try {Thread.sleep(1);} catch(Exception e) {} 
-
-				now = System.nanoTime();
-			}
-    	}
-    }
-
-    @SuppressWarnings("unused")
     private void gameloopMinecraft() {
     	long lastTime = System.nanoTime();
     	double amountOfTicks = 60.0;
     	double OPTIMAL_TIME = 1000000000 / amountOfTicks;
     	double delta = 0;
     	long timer = System.currentTimeMillis();
+    	long lastLoopTime = System.nanoTime();
+    	long lastFpsTime = 0;
     	int frameCount = 0;
+    	int tickCount = 0;
 
 		// keep looping round till the game ends using Exclusive-Or (^)
     	while (this.isMainMenu ^ this.playing) {
@@ -352,24 +359,31 @@ public class Game extends Canvas implements Runnable {
     		frameCount++;
     		
 			// play catch up if lagging behind
-			while (delta >= 1) {
+			while (delta >= 1.0) {
 				update();
 				delta--;
+				tickCount++;
 			}
 			// render/draw graphics
 			render();
-			
-			if (System.currentTimeMillis() - timer > 1000) {
-				timer += 1000;
+
+			long updateLength = now - lastLoopTime;
+			lastLoopTime = now;
+			lastFpsTime += updateLength;
+			if (lastFpsTime >= ONE_SECOND) {
 				this.fps = frameCount;
+				this.tps = tickCount;
+				lastFpsTime = 0;
 				frameCount = 0;
+				tickCount = 0;
 			}
     	}
     	
     }
+    */
     
     // ==================================================
-    //		Game Loop Functions
+    //		Game Functions
     // ==================================================
 
 	// tick method
@@ -411,7 +425,6 @@ public class Game extends Canvas implements Runnable {
 	// render and draw FPS
 	private void renderFPS(Graphics g) {
 		g.setColor(new Color(255, 255, 255, 100));
-		
 		g.setFont(f_debug);
 		g.drawString("TPS:" + this.tps + " FPS:" + this.fps, 1, this.getHeight()-2);
 	}
