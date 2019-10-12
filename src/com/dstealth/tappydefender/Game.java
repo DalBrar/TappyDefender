@@ -35,6 +35,23 @@ public class Game extends Canvas implements Runnable {
 	
     private int screenX;
     private int screenY;
+    
+    // Font settings
+	private static final String font = "consolas";
+	private static final int f_size_TITLE		= 60;
+	private static final int f_size_SUBTITLE	= 40;
+	private static final int f_size_MENU_TEXT	= 25;
+	private static final int f_size_MENU_SUBTEXT= 18;
+	private static final int f_size_HUD			= 15;
+	private static final int f_size_CONTROLS	= 14;
+	private static final int f_size_DEBUG		= 12;
+	private static final Font f_title		= new Font(font, Font.BOLD, f_size_TITLE);
+	private static final Font f_subtitle	= new Font(font, Font.BOLD, f_size_SUBTITLE);
+	private static final Font f_menu_text	= new Font(font, Font.BOLD, f_size_MENU_TEXT);
+	private static final Font f_menu_subtext= new Font(font, Font.BOLD, f_size_MENU_SUBTEXT);
+	private static final Font f_hud			= new Font(font, Font.BOLD, f_size_HUD);
+	private static final Font f_controls	= new Font(font, Font.BOLD, f_size_CONTROLS);
+	private static final Font f_debug		= new Font(font, Font.PLAIN, f_size_DEBUG);
 
     // Sounds
     private SoundFile s_menu;
@@ -394,10 +411,8 @@ public class Game extends Canvas implements Runnable {
 	private void renderFPS(Graphics g) {
 		g.setColor(new Color(255, 255, 255, 100));
 		
-    	final int fontSizeT = 14;
-		Font fontT = new Font("consolas", 1, fontSizeT);
-		g.setFont(fontT);
-		g.drawString("TPS: " + this.tps + " FPS: " + this.fps, 1, this.getHeight()-2);
+		g.setFont(f_debug);
+		g.drawString("TPS:" + this.tps + " FPS:" + this.fps, 1, this.getHeight()-2);
 	}
 
     // ==================================================
@@ -504,20 +519,13 @@ public class Game extends Canvas implements Runnable {
 		g.fillRect(0, 0, this.getWidth(), this.getHeight());
 		
 		g.drawImage(this.bgImg, 0, 0, null);
-
-    	final int fontSizeL = 40;
-    	final int fontSizeS = 18;
-    	final int fontSizeT = 14;
-		Font fontL = new Font("consolas", 1, fontSizeL);
-		Font fontS = new Font("consolas", 1, fontSizeS);
-		Font fontT = new Font("consolas", 1, fontSizeT);
 		g.setColor(new Color(255, 255, 255, 200));
 		
 		if (this.flashTime)
-			drawStringCenter(g, fontL, "Press ENTER to Start", 180);
-		drawStringCenter(g, fontS, "CONTROLS:", 370);
-		drawStringCenter(g, fontT, "SPACE = Fly/Boost", 390);
-		drawStringCenter(g, fontT, "ENTER = Pause    ", 405);
+			drawStringCenter(g, f_subtitle, "Press ENTER to Start", 180);
+		drawStringCenter(g, f_menu_subtext, "CONTROLS:", 370);
+		drawStringCenter(g, f_controls, "SPACE = Fly/Boost", 390);
+		drawStringCenter(g, f_controls, "ENTER = Pause    ", 405);
 	}
 	
 	private void drawBackground(Graphics g) {
@@ -565,9 +573,7 @@ public class Game extends Canvas implements Runnable {
 	}
 	
 	private void drawGameplayHUD(Graphics g) {
-    	final int fontSize = 15;
-		Font font = new Font("consolas", 1, fontSize);
-		g.setFont(font);
+		g.setFont(f_hud);
 
 		// Top text
 		if (this.player.getShieldStrength() > 1)
@@ -577,59 +583,51 @@ public class Game extends Canvas implements Runnable {
     		g.setColor(new Color(255, 255, 0, 225));
     	else
     		g.setColor(new Color(255, 0, 0, 225));
-		g.drawString("Shields: " + this.player.getShieldStrength(), 5, fontSize);
+		g.drawString("Shields: " + this.player.getShieldStrength(), 5, f_size_HUD);
 		
 		g.setColor(new Color(150, 150, 150, 225));
-		drawStringCenter(g, font, "Time: " + FormatUtil.formatTime(this.timeTaken), fontSize);
-		g.drawString("Fastest: " + FormatUtil.formatTime(this.fastestTime), this.screenX - 130, fontSize);
+		drawStringCenter(g, f_hud, "Time: " + FormatUtil.formatTime(this.timeTaken), f_size_HUD);
+		g.drawString("Fastest: " + FormatUtil.formatTime(this.fastestTime), this.screenX - 130, f_size_HUD);
 		// bottom text
-		drawStringCenter(g, font, "Distance: " + FormatUtil.formatDistance(this.distanceRemaining), this.screenY - fontSize);
-		g.drawString("Speed: " + FormatUtil.formatSpeed(this.player.getSpeed()), this.screenX - 130, this.screenY - fontSize);
+		drawStringCenter(g, f_hud, "Distance: " + FormatUtil.formatDistance(this.distanceRemaining), this.screenY - f_size_HUD);
+		g.drawString("Speed: " + FormatUtil.formatSpeed(this.player.getSpeed()), this.screenX - 130, this.screenY - f_size_HUD);
 	}
 	
 	private void drawGameOverScreen(Graphics g) {
-    	final int fontSize1 = 25;
-    	final int fontSize2 = 60;
-		Font fontS = new Font("consolas", 1, fontSize1);
-		Font fontL = new Font("consolas", 1, fontSize2);
 		g.setColor(new Color(255, 255, 255, 200));
 		
-		drawStringCenter(g, fontL, "Game Over", fontSize2);
-		drawStringCenter(g, fontS, "Fastest Time: " + FormatUtil.formatTime(this.fastestTime), 100);
-		drawStringCenter(g, fontS, "This Time: " + FormatUtil.formatTime(this.timeTaken), 130);
+		drawStringCenter(g, f_title, "Game Over", f_size_TITLE);
+		drawStringCenter(g, f_menu_text, "Fastest Time: " + FormatUtil.formatTime(this.fastestTime), 100);
+		drawStringCenter(g, f_menu_text, "This Time: " + FormatUtil.formatTime(this.timeTaken), 130);
 		if (this.distanceRemaining == 0) {
     		g.setColor(new Color(0, 255, 0, 200));
-			drawStringCenter(g, fontS, "Made It Home!", 160);
+			drawStringCenter(g, f_menu_text, "Made It Home!", 160);
 		} else {
     		g.setColor(new Color(255, 0, 0, 200));
-			drawStringCenter(g, fontS, "Distance Remaining: " + FormatUtil.formatDistance(this.distanceRemaining), 160);
+			drawStringCenter(g, f_menu_text, "Distance Remaining: " + FormatUtil.formatDistance(this.distanceRemaining), 160);
 		}
 		
 		g.setColor(new Color(255, 255, 255, 200));
-		drawStringCenter(g, fontS, "Press ENTER to replay!", 250);
-		drawStringCenter(g, fontS, "Press ESC to return to Menu", 280);
+		drawStringCenter(g, f_menu_text, "Press ENTER to replay!", 250);
+		drawStringCenter(g, f_menu_text, "Press ESC to return to Menu", 280);
 	}
 	
 	private void drawPauseHUD(Graphics g) {
-    	final int fontSizeS = 25;
-    	final int fontSizeL = 60;
-		Font fontS = new Font("consolas", 1, fontSizeS);
-		Font fontL = new Font("consolas", 1, fontSizeL);
 		g.setColor(new Color(255, 255, 255, 200));
 		
 		if (this.flashTime)
-			drawStringCenter(g, fontL, "Paused", fontSizeL+50);
-		drawStringCenter(g, fontS, "Press ENTER to resume", 180);
-		drawStringCenter(g, fontS, "Press ESC to return to Menu", 240);
+			drawStringCenter(g, f_title, "Paused", f_size_TITLE+50);
+		drawStringCenter(g, f_menu_text, "Press ENTER to resume", 180);
+		drawStringCenter(g, f_menu_text, "Press ESC to return to Menu", 240);
 	}
-    
-    private int getStringCenter(Graphics g, Font font, String str) {
-    	FontMetrics metrics = g.getFontMetrics(font);
-    	return (this.screenX - metrics.stringWidth(str)) / 2;
+     
+    private void drawStringCenter(Graphics g, Font f, String str, int y) {
+		g.setFont(f);
+		g.drawString(str, getStringCenter(g, f, str), y);
     }
     
-    private void drawStringCenter(Graphics g, Font font, String str, int y) {
-		g.setFont(font);
-		g.drawString(str, getStringCenter(g, font, str), y);
+    private int getStringCenter(Graphics g, Font f, String str) {
+    	FontMetrics metrics = g.getFontMetrics(f);
+    	return (this.screenX - metrics.stringWidth(str)) / 2;
     }
 }
