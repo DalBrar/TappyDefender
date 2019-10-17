@@ -1,8 +1,11 @@
 package com.dstealth.tappydefender.gameobjects;
 
+import java.awt.Graphics;
+
 import com.dstealth.tappydefender.Game;
 import com.dstealth.tappydefender.ResourceManager;
 import com.dstealth.tappydefender.helpers.SoundFile;
+import com.dstealth.tappydefender.helpers.SpriteSheet;
 
 public class PlayerShip extends GameObject {
     private static final int GRAVITY = -4;
@@ -13,6 +16,8 @@ public class PlayerShip extends GameObject {
     private int shieldStrength;
     private boolean boosting;
     private SoundFile booster;
+    private SpriteSheet boosterflame;
+    private static final int BOOSTERFLAME_WIDTH = 24;
 
 	public PlayerShip(int width, int height) {
 		super(width, height, rm.g_player);
@@ -24,15 +29,15 @@ public class PlayerShip extends GameObject {
 		this.booster = rm.s_booster;
 		
 		initializeHitbox();
+		
+		this.boosterflame = new SpriteSheet("boosterflame.png", BOOSTERFLAME_WIDTH, 12);
+		this.boosterflame.setAnimSpeed(3);
 	}
 	
 	public void update() {
 		update(this.speed);
 	}
 	
-	/**
-	 * playerSpeed param is unused for PlayerShip.
-	 */
 	@Override
 	public void update(int playerSpeed) {
         // are we boosting?
@@ -64,6 +69,13 @@ public class PlayerShip extends GameObject {
 
         // Refresh hit box location
         updateHitbox();
+	}
+	
+	@Override
+	public void draw(Graphics g) {
+		if (this.boosting)
+			this.boosterflame.animateAt(g, this.x-BOOSTERFLAME_WIDTH+1, this.y+17);
+		g.drawImage(this.getBitmap(), this.x, this.y, null);
 	}
 	
 	@Override

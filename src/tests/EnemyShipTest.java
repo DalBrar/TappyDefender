@@ -20,7 +20,7 @@ public class EnemyShipTest {
 
 	@Test
 	public void testEnemyShipSpeed() {
-		assertEquals(true, this.es.getSpeed() >= MIN_SPEED && this.es.getSpeed() <= MAX_SPEED);
+		assertTrue(this.es.getSpeed() >= MIN_SPEED && this.es.getSpeed() <= MAX_SPEED);
 	}
 
 }
