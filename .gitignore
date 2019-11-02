@@ -1,10 +1,12 @@
 # Compiled class file
 *.class
-bin/
 
 # Eclipse Files
 *.classpath
 *.project
+bin/
+.externalToolBuilders/
+.settings
 
 # Log file
 *.log
